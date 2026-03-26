@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParkEV — Sign In</title>
+<meta name="description" content="Sign in to ParkEV Smart Parking.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:    #f4f6f9;
+  --card:  #ffffff;
+  --line:  #dde1e8;
+  --line2: #c9cfd9;
+  --text:  #1a202c;
+  --sub:   #4a5568;
+  --muted: #a0aec0;
+  --blue:  #4f6ef7;
+  --blue2: #6b84f8;
+  --green: #16a34a;
+  --red:   #dc2626;
+  --gold:  #d97706;
+  --r:     8px;
+}
+
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.login-card{
+  width:100%;max-width:400px;
+  padding:40px 36px 32px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.brand{display:flex;align-items:center;gap:9px;margin-bottom:28px}
+.brand-icon{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--blue);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:14px;
+}
+.brand-name{font-family:'Outfit',sans-serif;font-weight:900;font-size:18px;color:var(--text)}
+
+.card-title{font-family:'Outfit',sans-serif;font-size:22px;font-weight:900;color:var(--text);margin-bottom:3px}
+.card-sub{font-size:13px;color:var(--sub);margin-bottom:24px}
+
+.msg{
+  display:none;flex-direction:row;align-items:center;gap:8px;
+  padding:10px 13px;border-radius:var(--r);font-size:13px;margin-bottom:16px;
+}
+.msg.err{background:rgba(229,62,62,0.08);border:1px solid rgba(229,62,62,0.22);color:#fc8181}
+.msg.ok{background:rgba(56,161,105,0.08);border:1px solid rgba(56,161,105,0.22);color:#68d391}
+.msg.show{display:flex}
+
+.igroup{margin-bottom:12px}
+.ifield{
+  display:flex;align-items:center;gap:10px;
+  background:var(--bg);border:1px solid var(--line2);
+  border-radius:var(--r);padding:0 13px;
+  transition:border-color .15s,box-shadow .15s;
+}
+.ifield:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(76,110,245,.12)}
+.ifield i{color:var(--muted);font-size:13px;flex-shrink:0}
+.ifield input{
+  flex:1;background:transparent;border:none;
+  color:var(--text);padding:13px 0;
+  font-family:'Inter',sans-serif;font-size:14px;outline:none;
+}
+.ifield input::placeholder{color:var(--muted)}
+.eye{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:4px;transition:color .15s}
+.eye:hover{color:var(--sub)}
+
+.aux{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.chk{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--sub);cursor:pointer}
+.chk input{accent-color:var(--blue)}
+.link{font-size:13px;color:var(--blue2);text-decoration:none}
+.link:hover{text-decoration:underline}
+
+.btn{
+  width:100%;padding:13px;background:var(--blue);color:#fff;border:none;
+  border-radius:var(--r);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;transition:background .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn:hover{background:var(--blue2)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.div{
+  display:flex;align-items:center;gap:10px;
+  color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin:16px 0;
+}
+.div::before,.div::after{content:'';flex:1;height:1px;background:var(--line)}
+
+.socials{display:flex;gap:7px}
+.soc{
+  flex:1;padding:10px 8px;background:var(--bg);border:1px solid var(--line2);
+  color:var(--sub);border-radius:var(--r);
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:500;
+  cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.soc:hover{border-color:var(--line);color:var(--text)}
+
+.foot{text-align:center;font-size:13px;color:var(--muted);margin-top:16px}
+.foot a{color:var(--blue2);text-decoration:none;font-weight:600}
+
+.admin-sep{margin-top:18px}
+.btn-adm{
+  width:100%;padding:10px 14px;background:transparent;
+  border:1px solid rgba(192,122,26,.3);color:var(--gold);border-radius:var(--r);
+  font-family:'Inter',sans-serif;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-adm:hover{background:rgba(192,122,26,.07);border-color:rgba(192,122,26,.5)}
+.chev{margin-left:auto;transition:transform .2s}
+
+.adm-box{
+  display:none;margin-top:10px;padding:14px;
+  background:rgba(192,122,26,.03);border:1px solid rgba(192,122,26,.14);border-radius:var(--r);
+}
+.adm-box .ifield:focus-within{border-color:var(--gold);box-shadow:0 0 0 3px rgba(192,122,26,.1)}
+.btn-adm-go{
+  width:100%;padding:11px;background:var(--gold);color:#1a0e00;border:none;
+  border-radius:var(--r);font-family:'Inter',sans-serif;font-size:13.5px;font-weight:700;
+  cursor:pointer;transition:background .15s;
+  display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;
+}
+.btn-adm-go:hover{background:#d4891e}
+.btn-adm-go:disabled{opacity:.5;cursor:not-allowed}
+
+#toasts{position:fixed;top:14px;right:14px;z-index:999;display:flex;flex-direction:column;gap:6px}
+.toast{
+  background:var(--card);border:1px solid var(--line2);border-radius:var(--r);
+  padding:11px 15px;font-size:13px;display:flex;align-items:center;gap:8px;min-width:210px;
+  box-shadow:0 4px 18px rgba(0,0,0,.4);transform:translateX(110%);transition:transform .2s ease;
+}
+.toast.in{transform:translateX(0)}
+.toast.ok{border-left:3px solid var(--green)}.toast.ok i{color:var(--green)}
+.toast.err{border-left:3px solid var(--red)}.toast.err i{color:var(--red)}
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="brand">
+    <div class="brand-icon"><i class="fa-solid fa-charging-station"></i></div>
+    <span class="brand-name">ParkEV</span>
+  </div>
+
+  <h1 class="card-title">Welcome back</h1>
+  <p class="card-sub">Sign in to your account</p>
+
+  <div class="msg" id="msg"></div>
+
+  <form id="login-form" novalidate>
+    <div class="igroup">
+      <div class="ifield">
+        <i class="fa-regular fa-envelope"></i>
+        <input type="email" id="email" placeholder="Email address" autocomplete="email" required>
+      </div>
+    </div>
+    <div class="igroup">
+      <div class="ifield">
+        <i class="fa-solid fa-lock"></i>
+        <input type="password" id="password" placeholder="Password" autocomplete="current-password" required>
+        <button type="button" class="eye" onclick="toggleEye('password',this)"><i class="fa-regular fa-eye"></i></button>
+      </div>
+    </div>
+    <div class="aux">
+      <label class="chk"><input type="checkbox" checked> Remember me</label>
+      <a href="#" class="link" onclick="return false">Forgot password?</a>
+    </div>
+    <button type="submit" class="btn" id="login-btn">Sign in &nbsp;<i class="fa-solid fa-arrow-right"></i></button>
+  </form>
+
+  <div class="div">or</div>
+
+  <div class="socials">
+    <button class="soc" id="google-btn" onclick="handleGoogle()"><i class="fa-brands fa-google"></i> Google</button>
+    <button class="soc" onclick="notify('Coming soon','err')"><i class="fa-brands fa-apple"></i> Apple</button>
+    <button class="soc" onclick="notify('Coming soon','err')"><i class="fa-brands fa-microsoft"></i></button>
+  </div>
+
+  <p class="foot">No account? <a href="register.html">Create one free</a></p>
+
+  <div class="admin-sep">
+    <div class="div">admin</div>
+    <button class="btn-adm" onclick="toggleAdmin()">
+      <i class="fa-solid fa-shield-halved"></i> Admin Login
+      <i class="fa-solid fa-chevron-down chev" id="chev"></i>
+    </button>
+    <div class="adm-box" id="adm-box">
+      <div class="igroup">
+        <div class="ifield"><i class="fa-solid fa-at"></i>
+          <input type="email" id="a-email" placeholder="Admin email">
+        </div>
+      </div>
+      <div class="igroup">
+        <div class="ifield"><i class="fa-solid fa-lock"></i>
+          <input type="password" id="a-pw" placeholder="Admin password">
+          <button type="button" class="eye" onclick="toggleEye('a-pw',this)"><i class="fa-regular fa-eye"></i></button>
+        </div>
+      </div>
+      <button type="button" class="btn-adm-go" id="admin-btn" onclick="doAdmin()">
+        <i class="fa-solid fa-shield-halved"></i> Sign in as Admin
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<!-- Firebase JS SDK (compat builds — work directly in script tags, no bundler needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+
+<script>
+const API = location.origin + '/api';
+
+// ── Firebase client-side init ─────────────────────────────────────
+firebase.initializeApp({
+  apiKey:            "AIzaSyALwFuP05zm1mK73l1bqADPLmO9JjWQvLQ",
+  authDomain:        "parkev-25e5b.firebaseapp.com",
+  projectId:         "parkev-25e5b",
+  storageBucket:     "parkev-25e5b.firebasestorage.app",
+  messagingSenderId: "763721303762",
+  appId:             "1:763721303762:web:2f58bb5890e0f66967cf0b",
+  measurementId:     "G-V45DR951R5"
+});
+const fbAuth    = firebase.auth();
+const gProvider = new firebase.auth.GoogleAuthProvider();
+gProvider.setCustomParameters({ prompt: 'select_account' });
+
+// Auto-redirect if already signed in
+const _tok = localStorage.getItem('parkev_token');
+const _usr = JSON.parse(localStorage.getItem('parkev_user') || 'null');
+if (_tok && _usr) location.href = _usr.role === 'admin' ? 'admin.html' : 'dashboard.html';
+
+// ── Helpers ───────────────────────────────────────────────────────
+function toggleEye(id, btn) {
+  const el = document.getElementById(id), i = btn.querySelector('i');
+  el.type = el.type === 'password' ? 'text' : 'password';
+  i.classList.toggle('fa-eye'); i.classList.toggle('fa-eye-slash');
+}
+
+function showMsg(text, type='err') {
+  const el = document.getElementById('msg');
+  el.className = 'msg show ' + type;
+  el.innerHTML = `<i class="fa-solid fa-${type==='err'?'circle-exclamation':'circle-check'}"></i> ${text}`;
+  setTimeout(() => el.className = 'msg', 4500);
+}
+
+function notify(text, type='ok') {
+  const wrap = document.getElementById('toasts'), t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<i class="fa-solid fa-${type==='ok'?'circle-check':'circle-exclamation'}"></i> ${text}`;
+  wrap.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('in'));
+  setTimeout(() => { t.classList.remove('in'); setTimeout(() => t.remove(), 220); }, 3200);
+}
+
+// ── Email / Password Login ────────────────────────────────────────
+document.getElementById('login-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Signing in…';
+  try {
+    const r = await fetch(`${API}/auth/login`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        email:    document.getElementById('email').value.trim(),
+        password: document.getElementById('password').value
+      })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Login failed');
+    localStorage.setItem('parkev_token', d.token);
+    localStorage.setItem('parkev_user', JSON.stringify(d.user));
+    notify(`Welcome back, ${d.user.name.split(' ')[0]}!`);
+    setTimeout(() => { location.href = d.user.role === 'admin' ? 'admin.html' : 'dashboard.html'; }, 600);
+  } catch (err) {
+    showMsg(err.message);
+    btn.disabled = false;
+    btn.innerHTML = 'Sign in &nbsp;<i class="fa-solid fa-arrow-right"></i>';
+  }
+});
+
+// ── Google Sign-In (real Firebase popup) ──────────────────────────
+async function handleGoogle() {
+  const btn = document.getElementById('google-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+  try {
+    // 1. Open Google account selector popup via Firebase Auth
+    const result = await fbAuth.signInWithPopup(gProvider);
+
+    // 2. Get the Firebase ID token (JWT signed by Google)
+    const idToken = await result.user.getIdToken();
+
+    // 3. Send it to our backend — backend verifies with Firebase Admin SDK
+    const r = await fetch(`${API}/auth/google`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ idToken })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Google login failed');
+
+    // 4. Store our JWT and redirect
+    localStorage.setItem('parkev_token', d.token);
+    localStorage.setItem('parkev_user', JSON.stringify(d.user));
+    notify(`Welcome, ${d.user.name.split(' ')[0]}!`);
+    setTimeout(() => { location.href = d.user.role === 'admin' ? 'admin.html' : 'dashboard.html'; }, 600);
+  } catch (err) {
+    // Ignore user-closed-popup
+    if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+      showMsg(err.message || 'Google sign-in failed');
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-brands fa-google"></i> Google';
+  }
+}
+
+// ── Admin Toggle ──────────────────────────────────────────────────
+function toggleAdmin() {
+  const box = document.getElementById('adm-box'), chev = document.getElementById('chev');
+  const open = box.style.display !== 'block';
+  box.style.display = open ? 'block' : 'none';
+  chev.style.transform = open ? 'rotate(180deg)' : '';
+  if (open) document.getElementById('a-email').focus();
+}
+
+async function doAdmin() {
+  const email = document.getElementById('a-email').value.trim();
+  const pw = document.getElementById('a-pw').value;
+  if (!email || !pw) { showMsg('Enter admin email and password.'); return; }
+  const btn = document.getElementById('admin-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying…';
+  try {
+    const r = await fetch(`${API}/auth/login`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email, password: pw })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Login failed');
+    if (d.user.role !== 'admin') throw new Error('Not an admin account.');
+    localStorage.setItem('parkev_token', d.token);
+    localStorage.setItem('parkev_user', JSON.stringify(d.user));
+    notify('Admin access granted!');
+    setTimeout(() => { location.href = 'admin.html'; }, 600);
+  } catch (err) {
+    showMsg(err.message);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Sign in as Admin';
+  }
+}
+</script>
+</body>
+</html>

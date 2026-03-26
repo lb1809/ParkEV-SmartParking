@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkEV - Smart Parking & EV Dashboard</title>
+    <meta name="description" content="ParkEV Smart Parking Dashboard with real-time slot monitoring and EV charging.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- ===== Sidebar ===== -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon"><i class="fa-solid fa-charging-station"></i></div>
+                <h1 class="logo-text">ParkEV</h1>
+            </div>
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item active" id="nav-map"><i class="fa-solid fa-map-location-dot"></i>
+                    <span>Live Map</span></a>
+                <a href="dashboard.html" class="nav-item" id="nav-dash"><i class="fa-solid fa-grid-2"></i>
+                    <span>Dashboard</span></a>
+                <a href="#" class="nav-item"><i class="fa-solid fa-bolt"></i> <span>EV Stations</span></a>
+                <a href="#" class="nav-item"><i class="fa-solid fa-chart-line"></i> <span>Analytics</span></a>
+                <a href="#" class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i> <span>Reservations</span></a>
+                <a href="admin.html" class="nav-item admin-nav" id="admin-nav" style="display:none;"><i
+                        class="fa-solid fa-shield-halved"></i> <span>Admin Panel</span></a>
+            </nav>
+            <div class="user-profile">
+                <img id="user-avatar" src="https://ui-avatars.com/api/?name=User&background=2979ff&color=fff" alt="User"
+                    class="avatar">
+                <div class="user-info">
+                    <span class="user-name" id="sidebar-user-name">User</span>
+                    <span class="user-role" id="sidebar-user-role">Online <span class="status-dot"></span></span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ===== Main Content ===== -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <div class="header-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" placeholder="Search spots, zones, EVs...">
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" title="Refresh" onclick="loadSlots()"><i
+                            class="fa-solid fa-rotate"></i></button>
+                    <button class="icon-btn" title="Notifications"><i class="fa-regular fa-bell"></i><span class="badge"
+                            id="notif-badge">0</span></button>
+                    <button class="primary-btn pulse-glow" onclick="syncIoT()"><i
+                            class="fa-solid fa-satellite-dish"></i> IoT Sync</button>
+                    <button class="icon-btn" title="Logout" onclick="logout()"><i
+                            class="fa-solid fa-arrow-right-from-bracket"></i></button>
+                </div>
+            </header>
+
+            <!-- KPI Cards -->
+            <section class="kpi-grid">
+                <div class="glass-card stat-card">
+                    <div class="stat-icon box-blue"><i class="fa-solid fa-car"></i></div>
+                    <div class="stat-details">
+                        <p class="stat-label">Total Capacity</p>
+                        <h2 class="stat-value">10</h2>
+                    </div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-icon box-green"><i class="fa-solid fa-square-check"></i></div>
+                    <div class="stat-details">
+                        <p class="stat-label">Available Spots</p>
+                        <h2 class="stat-value" id="kpi-available">10</h2>
+                    </div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-icon box-teal"><i class="fa-solid fa-charging-station"></i></div>
+                    <div class="stat-details">
+                        <p class="stat-label">Active EV Chargers</p>
+                        <h2 class="stat-value" id="kpi-ev-active">0</h2>
+                    </div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-icon box-purple"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                    <div class="stat-details">
+                        <p class="stat-label">Today's Revenue</p>
+                        <h2 class="stat-value" id="kpi-revenue">₹0</h2>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Dashboard Layout: Map + Side Panel -->
+            <div class="dashboard-layout">
+                <!-- Live Facility Map -->
+                <div class="glass-card map-container">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fa-solid fa-location-dot"></i> Live Facility Map</h3>
+                        <div class="map-legend">
+                            <span class="legend-item">
+                                <div class="legend-box color-empty"></div> Empty
+                            </span>
+                            <span class="legend-item">
+                                <div class="legend-box color-occupied"></div> Occupied
+                            </span>
+                            <span class="legend-item">
+                                <div class="legend-box color-ev"></div> EV Charging
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="parking-grid-wrapper">
+                        <!-- Zone A: Standard Parking (Slots 1-6) -->
+                        <div class="lane">
+                            <span class="lane-label"><i class="fa-solid fa-car"></i> Zone A — Standard Parking</span>
+                            <div class="spot-row" id="zone-a-row">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Driveway -->
+                        <div class="driveway">
+                            <span class="driveway-arrow"><i class="fa-solid fa-arrow-right-long"></i></span>
+                        </div>
+
+                        <!-- Zone B: EV Charging (Slots 7-10) -->
+                        <div class="lane">
+                            <span class="lane-label ev-label"><i class="fa-solid fa-bolt"></i> Zone B — EV Charging
+                                Stations</span>
+                            <div class="spot-row" id="zone-b-row">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Side Panel -->
+                <div class="side-panel">
+                    <!-- Quick Reservation Widget -->
+                    <div class="glass-card reservation-widget">
+                        <h3 class="card-title"><i class="fa-solid fa-calendar-check"></i> Quick Reservation</h3>
+                        <br>
+
+                        <div class="input-group">
+                            <label>Vehicle Type</label>
+                            <div class="toggle-switch">
+                                <input type="radio" name="res-type" id="res-standard" value="standard" checked>
+                                <label for="res-standard"><i class="fa-solid fa-car"></i> Standard</label>
+                                <input type="radio" name="res-type" id="res-ev" value="ev">
+                                <label for="res-ev"><i class="fa-solid fa-bolt"></i> EV</label>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="arrival-time">Arrival Time</label>
+                            <input type="datetime-local" id="arrival-time" class="modern-input">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="duration-slider">Duration: <span id="duration-display">2 hrs</span></label>
+                            <input type="range" id="duration-slider" class="slider" min="1" max="12" value="2">
+                        </div>
+
+                        <div class="price-estimate">
+                            <span style="color: var(--text-secondary);">Estimated Cost</span>
+                            <span class="price-text" id="price-estimate">₹30</span>
+                        </div>
+
+                        <button class="submit-btn" id="reserve-btn" onclick="handleReserve()">
+                            <i class="fa-solid fa-check-circle"></i> Reserve Spot
+                        </button>
+                    </div>
+
+                    <!-- IoT Activity Log -->
+                    <div class="glass-card log-widget">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fa-solid fa-satellite-dish"></i> IoT Activity</h3>
+                            <button class="icon-btn" onclick="clearLog()"><i class="fa-solid fa-eraser"></i></button>
+                        </div>
+                        <ul class="activity-list" id="activity-log">
+                            <li><span class="time">System</span> Dashboard connected — all sensors online</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== Payment Modal ===== -->
+    <div class="modal-overlay" id="payment-modal">
+        <div class="glass-card modal-content">
+            <button class="close-modal" onclick="closePaymentModal()"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="modal-title">Confirm Reservation</h3>
+            <p class="modal-subtitle">Review your booking and proceed to pay</p>
+
+            <div class="order-summary">
+                <div class="summary-row"><span>Spot</span><span id="summary-spot">—</span></div>
+                <div class="summary-row"><span>Zone</span><span id="summary-zone">—</span></div>
+                <div class="summary-row"><span>Type</span><span id="summary-type">—</span></div>
+                <div class="summary-row"><span>Duration</span><span id="summary-duration">—</span></div>
+                <div class="summary-row total"><span>Total</span><span id="summary-price">—</span></div>
+            </div>
+
+            <h4 style="color:var(--text-secondary);font-size:13px;margin-bottom:12px;">Payment Method</h4>
+            <div class="payment-methods">
+                <button class="pay-method-btn active" onclick="selectPayment(this)"><i
+                        class="fa-solid fa-credit-card"></i></button>
+                <button class="pay-method-btn" onclick="selectPayment(this)"><i class="fa-solid fa-wallet"></i></button>
+                <button class="pay-method-btn" onclick="selectPayment(this)"><i
+                        class="fa-solid fa-mobile-screen-button"></i></button>
+            </div>
+
+            <div class="card-input-container">
+                <input type="text" class="modern-input" placeholder="Card Number" maxlength="19">
+                <div class="card-details-row">
+                    <input type="text" class="modern-input" placeholder="MM/YY" maxlength="5" style="flex:1">
+                    <input type="text" class="modern-input" placeholder="CVV" maxlength="3" style="flex:1">
+                </div>
+            </div>
+
+            <button class="submit-btn success-btn" id="pay-btn" onclick="processPayment()">
+                <i class="fa-solid fa-lock"></i> Pay Now
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== Slot Detail Modal ===== -->
+    <div class="modal-overlay" id="slot-modal">
+        <div class="glass-card modal-content">
+            <button class="close-modal" onclick="closeSlotModal()"><i class="fa-solid fa-xmark"></i></button>
+            <div id="slot-modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        const API_BASE = window.location.origin + '/api';
+        let currentUser = null;
+        let slotsData = [];
+        let selectedSlotForPayment = null;
+        let pollInterval = null;
+
+        // ======== Auth ========
+        function checkAuth() {
+            const token = localStorage.getItem('parkev_token');
+            const userStr = localStorage.getItem('parkev_user');
+            if (!token || !userStr) { window.location.href = 'login.html'; return; }
+            currentUser = JSON.parse(userStr);
+            document.getElementById('sidebar-user-name').textContent = currentUser.name;
+            document.getElementById('sidebar-user-role').innerHTML = `${currentUser.role === 'admin' ? '👑 Admin' : 'Online'} <span class="status-dot"></span>`;
+            document.getElementById('user-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}&background=2979ff&color=fff`;
+            if (currentUser.role === 'admin') document.getElementById('admin-nav').style.display = 'flex';
+        }
+
+        function logout() {
+            localStorage.removeItem('parkev_token');
+            localStorage.removeItem('parkev_user');
+            window.location.href = 'login.html';
+        }
+
+        function getAuthHeaders() {
+            return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('parkev_token') };
+        }
+
+        // ======== Load Slots ========
+        async function loadSlots() {
+            try {
+                const res = await fetch(`${API_BASE}/slots`);
+                const data = await res.json();
+                slotsData = data.slots;
+                renderParkingGrid(data.slots);
+                updateKPIs(data.stats);
+            } catch (err) {
+                console.error('Failed to load slots:', err);
+                showToast('Failed to connect to server', 'error');
+            }
+        }
+
+        function updateKPIs(stats) {
+            document.getElementById('kpi-available').textContent = stats.vacant;
+            document.getElementById('kpi-ev-active').textContent = stats.evOccupied;
+            document.getElementById('notif-badge').textContent = stats.occupied;
+        }
+
+        function renderParkingGrid(slots) {
+            const zoneA = document.getElementById('zone-a-row');
+            const zoneB = document.getElementById('zone-b-row');
+            zoneA.innerHTML = '';
+            zoneB.innerHTML = '';
+
+            slots.forEach(slot => {
+                const spotEl = document.createElement('div');
+                const isOwnSlot = slot.occupiedBy === currentUser?.userId;
+
+                // Determine CSS class
+                let spotClass = 'parking-spot ';
+                if (slot.status === 'vacant') {
+                    spotClass += 'spot-empty';
+                } else if (slot.status === 'occupied') {
+                    if (slot.type === 'ev') {
+                        spotClass += 'spot-ev-active';
+                    } else {
+                        spotClass += 'spot-occupied';
+                    }
+                } else {
+                    spotClass += 'spot-occupied'; // maintenance
+                }
+
+                spotEl.className = spotClass;
+                spotEl.id = `spot-${slot.slotId}`;
+
+                let innerHTML = '';
+                if (slot.status === 'occupied') {
+                    innerHTML = `<i class="fa-solid fa-car-side car-icon"></i>`;
+                    if (slot.type === 'ev') {
+                        innerHTML += `<div class="ev-icon-overlay"><i class="fa-solid fa-bolt"></i></div>`;
+                    }
+                    if (isOwnSlot) {
+                        innerHTML += `<div class="own-badge"><i class="fa-solid fa-star"></i></div>`;
+                    }
+                }
+
+                // Add EV load tier label under EV spots
+                let spotLabel = `S${slot.slotNumber}`;
+                if (slot.type === 'ev') {
+                    spotLabel = `EV${slot.slotNumber - 6}`;
+                }
+
+                innerHTML += `<span class="spot-id">${spotLabel}</span>`;
+
+                spotEl.innerHTML = innerHTML;
+                spotEl.addEventListener('click', () => handleSpotClick(slot));
+
+                if (slot.type === 'regular') {
+                    zoneA.appendChild(spotEl);
+                } else {
+                    zoneB.appendChild(spotEl);
+                }
+            });
+        }
+
+        // ======== Spot Click ========
+        function handleSpotClick(slot) {
+            const isOwnSlot = slot.occupiedBy === currentUser?.userId;
+
+            if (slot.status === 'vacant') {
+                // Check if EV slot requires EV vehicle
+                if (slot.type === 'ev' && currentUser?.vehicleType !== 'EV') {
+                    showToast('Only electric vehicles can use EV charging slots', 'error');
+                    return;
+                }
+                // Open payment modal for booking
+                selectedSlotForPayment = slot;
+                openPaymentModal(slot);
+            } else if (isOwnSlot) {
+                // Show release modal
+                openSlotModal(slot);
+            } else if (slot.status === 'occupied') {
+                // Just show info
+                openSlotModal(slot);
+            }
+        }
+
+        function openPaymentModal(slot) {
+            const duration = parseInt(document.getElementById('duration-slider').value) || 2;
+            const rate = slot.type === 'ev' ? 25 : 15;
+            const total = rate * duration;
+
+            document.getElementById('summary-spot').textContent = `Slot ${slot.slotNumber}`;
+            document.getElementById('summary-zone').textContent = slot.type === 'ev' ? `Zone B — EV (${slot.evLoadTier})` : 'Zone A — Standard';
+            document.getElementById('summary-type').textContent = slot.type === 'ev' ? `EV Charging (${slot.evPower})` : 'Standard Parking';
+            document.getElementById('summary-duration').textContent = `${duration} hour${duration > 1 ? 's' : ''}`;
+            document.getElementById('summary-price').textContent = `₹${total}`;
+
+            document.getElementById('payment-modal').classList.add('active');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').classList.remove('active');
+            selectedSlotForPayment = null;
+        }
+
+        function selectPayment(btn) {
+            document.querySelectorAll('.pay-method-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        async function processPayment() {
+            if (!selectedSlotForPayment) return;
+            const btn = document.getElementById('pay-btn');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/slots/${selectedSlotForPayment.slotId}/book`, {
+                    method: 'POST', headers: getAuthHeaders()
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                closePaymentModal();
+                showToast(`✅ ${data.message}`, 'success');
+                addLog(`🅿️ Booked Slot ${data.slot.slotNumber} — ${currentUser.vehicleNumber}`);
+                loadSlots();
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-lock"></i> Pay Now';
+                btn.disabled = false;
+            }
+        }
+
+        // ======== Slot Info Modal ========
+        function openSlotModal(slot) {
+            const body = document.getElementById('slot-modal-body');
+            const isOwnSlot = slot.occupiedBy === currentUser?.userId;
+
+            let content = '';
+            if (isOwnSlot) {
+                content = `
+                    <h3 class="modal-title">Your Parking — Slot ${slot.slotNumber}</h3>
+                    <p class="modal-subtitle">${slot.type === 'ev' ? `EV Charging (${slot.evLoadTier} — ${slot.evPower})` : 'Standard Parking'}</p>
+                    <div class="order-summary">
+                        <div class="summary-row"><span>Vehicle</span><span>${currentUser.vehicleNumber}</span></div>
+                        <div class="summary-row"><span>Zone</span><span>${slot.type === 'ev' ? 'B — EV' : 'A — Standard'}</span></div>
+                        <div class="summary-row"><span>Status</span><span style="color:var(--color-green);">Active</span></div>
+                        <div class="summary-row"><span>Since</span><span>${slot.occupiedAt ? new Date(slot.occupiedAt).toLocaleString() : '—'}</span></div>
+                    </div>
+                    <button class="submit-btn" style="background:var(--color-red);color:#fff;" onclick="releaseSlot('${slot.slotId}')">
+                        <i class="fa-solid fa-right-from-bracket"></i> Release & Exit
+                    </button>`;
+            } else {
+                content = `
+                    <h3 class="modal-title">Slot ${slot.slotNumber} — Occupied</h3>
+                    <p class="modal-subtitle">${slot.type === 'ev' ? `EV (${slot.evLoadTier})` : 'Standard'}</p>
+                    <div class="order-summary">
+                        <div class="summary-row"><span>Driver</span><span>${slot.occupantName || '—'}</span></div>
+                        <div class="summary-row"><span>Vehicle</span><span>${slot.occupantVehicle || '—'}</span></div>
+                        <div class="summary-row"><span>Since</span><span>${slot.occupiedAt ? new Date(slot.occupiedAt).toLocaleString() : '—'}</span></div>
+                    </div>`;
+            }
+            body.innerHTML = content;
+            document.getElementById('slot-modal').classList.add('active');
+        }
+
+        function closeSlotModal() {
+            document.getElementById('slot-modal').classList.remove('active');
+        }
+
+        // Close modals on overlay click
+        document.getElementById('payment-modal').addEventListener('click', (e) => { if (e.target.id === 'payment-modal') closePaymentModal(); });
+        document.getElementById('slot-modal').addEventListener('click', (e) => { if (e.target.id === 'slot-modal') closeSlotModal(); });
+
+        async function releaseSlot(slotId) {
+            try {
+                const res = await fetch(`${API_BASE}/slots/${slotId}/release`, {
+                    method: 'POST', headers: getAuthHeaders()
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+                closeSlotModal();
+                showToast(`✅ ${data.message}`, 'success');
+                addLog(`🚗 Released Slot ${data.slot.slotNumber}`);
+                loadSlots();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        // ======== Reservation Widget ========
+        document.getElementById('duration-slider').addEventListener('input', (e) => {
+            const hrs = e.target.value;
+            document.getElementById('duration-display').textContent = `${hrs} hr${hrs > 1 ? 's' : ''}`;
+            const isEV = document.getElementById('res-ev').checked;
+            const rate = isEV ? 25 : 15;
+            document.getElementById('price-estimate').textContent = `₹${rate * hrs}`;
+        });
+
+        document.querySelectorAll('input[name="res-type"]').forEach(r => {
+            r.addEventListener('change', () => {
+                const hrs = document.getElementById('duration-slider').value;
+                const isEV = document.getElementById('res-ev').checked;
+                const rate = isEV ? 25 : 15;
+                document.getElementById('price-estimate').textContent = `₹${rate * hrs}`;
+            });
+        });
+
+        function handleReserve() {
+            const isEV = document.getElementById('res-ev').checked;
+            // Find first available matching slot
+            const availableSlot = slotsData.find(s =>
+                s.status === 'vacant' &&
+                (isEV ? s.type === 'ev' : s.type === 'regular')
+            );
+
+            if (!availableSlot) {
+                showToast(`No ${isEV ? 'EV' : 'standard'} spots available right now`, 'error');
+                return;
+            }
+
+            if (isEV && currentUser?.vehicleType !== 'EV') {
+                showToast('Only EV owners can book EV charging slots', 'error');
+                return;
+            }
+
+            selectedSlotForPayment = availableSlot;
+            openPaymentModal(availableSlot);
+        }
+
+        // Set default arrival time
+        (function () {
+            const now = new Date();
+            const offset = now.getTimezoneOffset() * 60000;
+            const localISO = new Date(now - offset).toISOString().slice(0, 16);
+            document.getElementById('arrival-time').value = localISO;
+        })();
+
+        // ======== IoT Activity Log ========
+        function addLog(message) {
+            const log = document.getElementById('activity-log');
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const li = document.createElement('li');
+            li.innerHTML = `<span class="time">${timeStr}</span> ${message}`;
+            log.insertBefore(li, log.firstChild);
+            if (log.children.length > 15) log.removeChild(log.lastChild);
+        }
+
+        function clearLog() {
+            document.getElementById('activity-log').innerHTML = '<li><span class="time">System</span> Log cleared</li>';
+        }
+
+        function syncIoT() {
+            addLog('📡 IoT sync triggered — querying all 10 sensors...');
+            showToast('Syncing with IoT sensors...', 'info');
+            loadSlots();
+            setTimeout(() => {
+                addLog('✅ All 10 parking sensors responded — data refreshed');
+                showToast('IoT sync complete', 'success');
+            }, 1200);
+        }
+
+        // ======== Toast Notifications ========
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            const icon = type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info';
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 4000);
+        }
+
+        // ======== Polling ========
+        function startPolling() {
+            pollInterval = setInterval(() => {
+                loadSlots();
+            }, 5000);
+        }
+
+        // ======== Init ========
+        checkAuth();
+        loadSlots();
+        startPolling();
+    </script>
+
+    <style>
+        /* Additional styles for this page */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--bg-surface-solid);
+            border: var(--border-glass);
+            border-radius: var(--radius-md);
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 280px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--color-green);
+        }
+
+        .toast-success i {
+            color: var(--color-green);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--color-red);
+        }
+
+        .toast-error i {
+            color: var(--color-red);
+        }
+
+        .toast-info {
+            border-left: 4px solid var(--accent-blue);
+        }
+
+        .toast-info i {
+            color: var(--accent-blue);
+        }
+
+        .own-badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            color: #ffd740;
+            font-size: 12px;
+            animation: pulse 2s infinite;
+        }
+
+        .parking-spot {
+            height: 110px;
+            width: 70px;
+        }
+    </style>
+</body>
+
+</html>

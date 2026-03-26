@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkEV - Dashboard | Smart Parking & EV Charging</title>
+    <meta name="description"
+        content="Real-time smart parking dashboard with 7 slots, EV charging, and camera monitoring.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="nav-brand">
+            <div class="nav-logo"><i class="fa-solid fa-charging-station"></i></div>
+            <span class="nav-name">ParkEV</span>
+            <span class="nav-badge">LIVE</span>
+        </div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" data-view="parking" onclick="switchView('parking')">
+                <i class="fa-solid fa-car"></i> Parking Map
+            </button>
+            <button class="nav-tab" data-view="monitor" onclick="switchView('monitor')">
+                <i class="fa-solid fa-chart-line"></i> Monitor
+            </button>
+            <button class="nav-tab" data-view="bookings" onclick="switchView('bookings')">
+                <i class="fa-solid fa-clock-rotate-left"></i> My Bookings
+            </button>
+        </div>
+        <div class="nav-user">
+            <span class="user-greeting" id="user-greeting">Hello, User</span>
+            <div class="user-avatar" id="user-avatar">U</div>
+            <button class="nav-icon-btn" onclick="logout()" title="Logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <!-- Stats Strip -->
+        <div class="stats-strip">
+            <div class="stat-card" id="stat-total">
+                <div class="stat-icon"><i class="fa-solid fa-square-parking"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="total-slots">7</span>
+                    <span class="stat-label">Total Slots</span>
+                </div>
+            </div>
+            <div class="stat-card vacant" id="stat-vacant">
+                <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="vacant-slots">7</span>
+                    <span class="stat-label">Vacant</span>
+                </div>
+            </div>
+            <div class="stat-card occupied" id="stat-occupied">
+                <div class="stat-icon"><i class="fa-solid fa-car-side"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="occupied-slots">0</span>
+                    <span class="stat-label">Occupied</span>
+                </div>
+            </div>
+            <div class="stat-card ev" id="stat-ev">
+                <div class="stat-icon"><i class="fa-solid fa-bolt"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="ev-available">2</span>
+                    <span class="stat-label">EV Available</span>
+                </div>
+            </div>
+            <div class="stat-card camera-stat" id="stat-cameras">
+                <div class="stat-icon"><i class="fa-solid fa-video"></i></div>
+                <div class="stat-info">
+                    <span class="stat-value" id="cameras-online">2</span>
+                    <span class="stat-label">Cameras Online</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== VIEW: PARKING MAP ===== -->
+        <div class="view-panel active" id="view-parking">
+            <div class="parking-layout">
+                <!-- All Slots in Single Grid -->
+                <div class="zone-section">
+                    <div class="zone-header">
+                        <h3><i class="fa-solid fa-square-parking"></i> Parking Slots</h3>
+                        <span class="zone-count" id="zone-a-count">7 / 7 available</span>
+                    </div>
+                    <div class="slot-grid unified-grid" id="unified-slots">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Booking Widget -->
+            <div class="active-booking-widget" id="active-booking-widget" style="display:none;">
+                <div class="widget-header">
+                    <h3><i class="fa-solid fa-ticket"></i> Your Active Booking</h3>
+                    <span class="widget-live">● LIVE</span>
+                </div>
+                <div class="widget-body" id="active-booking-body"></div>
+            </div>
+        </div>
+
+
+
+        <!-- ===== VIEW: MONITOR ===== -->
+        <div class="view-panel" id="view-monitor">
+            <div class="monitor-panel">
+                <div class="monitor-header">
+                    <h2><i class="fa-solid fa-chart-line"></i> Parking Space Monitor</h2>
+                    <p>Complete real-time information about the parking facility — occupancy, occupants, and EV
+                        charging</p>
+                </div>
+
+                <div class="monitor-grid">
+                    <!-- Occupancy Overview -->
+                    <div class="monitor-card occupancy-card">
+                        <h3><i class="fa-solid fa-chart-pie"></i> Occupancy Overview</h3>
+                        <div class="occupancy-visual">
+                            <div class="donut-chart">
+                                <svg viewBox="0 0 36 36" class="donut-svg">
+                                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1e293b" stroke-width="3.5" />
+                                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#22c55e" stroke-width="3.5"
+                                        stroke-dasharray="100 0" stroke-dashoffset="25" id="donut-vacant"
+                                        class="donut-segment" />
+                                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ef4444" stroke-width="3.5"
+                                        stroke-dasharray="0 100" stroke-dashoffset="25" id="donut-occupied"
+                                        class="donut-segment" />
+                                </svg>
+                                <div class="donut-center">
+                                    <span class="donut-pct" id="occupancy-pct">0%</span>
+                                    <small>Occupied</small>
+                                </div>
+                            </div>
+                            <div class="occupancy-legend">
+                                <div class="legend-item"><span class="legend-dot vacant-dot"></span> Vacant: <strong
+                                        id="legend-vacant">7</strong></div>
+                                <div class="legend-item"><span class="legend-dot occupied-dot"></span> Occupied: <strong
+                                        id="legend-occupied">0</strong></div>
+                                <div class="legend-item"><span class="legend-dot ev-dot"></span> EV Stations: <strong
+                                        id="legend-ev">2</strong></div>
+                                <div class="legend-item"><span class="legend-dot maint-dot"></span> Maintenance: <strong
+                                        id="legend-maint">0</strong></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EV Charging Status -->
+                    <div class="monitor-card ev-status-card">
+                        <h3><i class="fa-solid fa-bolt"></i> EV Charging Stations</h3>
+                        <div class="ev-stations-list" id="ev-stations-list">
+                            <!-- Filled by JS -->
+                        </div>
+                    </div>
+
+                    <!-- ★ NEW: Slot Occupancy Details Table (full-width) -->
+                    <div class="monitor-card occupancy-details-card" style="grid-column: 1 / -1;">
+                        <h3><i class="fa-solid fa-users"></i> Slot Occupancy Details
+                            <span class="occupancy-count" id="occupancy-count"></span>
+                        </h3>
+                        <div class="occupancy-table-wrapper">
+                            <table class="occupancy-table" id="occupancy-table">
+                                <thead>
+                                    <tr>
+                                        <th>Slot</th>
+                                        <th>Zone</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Occupant Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Vehicle No.</th>
+                                        <th>Vehicle Type</th>
+                                        <th>Entry Time</th>
+                                        <th>Duration</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="occupancy-tbody">
+                                    <!-- Filled by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- System Info -->
+                    <div class="monitor-card system-card">
+                        <h3><i class="fa-solid fa-server"></i> System Information</h3>
+                        <div class="system-info-list">
+                            <div class="sys-item">
+                                <span class="sys-label">Server Status</span>
+                                <span class="sys-value online"><i class="fa-solid fa-circle"></i> Online</span>
+                            </div>
+                            <div class="sys-item">
+                                <span class="sys-label">Data Layer</span>
+                                <span class="sys-value" id="data-layer">Mock (Development)</span>
+                            </div>
+                            <div class="sys-item">
+                                <span class="sys-label">Total Capacity</span>
+                                <span class="sys-value">7 Slots</span>
+                            </div>
+                            <div class="sys-item">
+                                <span class="sys-label">EV Capacity</span>
+                                <span class="sys-value">2 Stations (up to 22 kW)</span>
+                            </div>
+                            <div class="sys-item">
+                                <span class="sys-label">Camera Modules</span>
+                                <span class="sys-value" id="cam-count">4 Active</span>
+                            </div>
+                            <div class="sys-item">
+                                <span class="sys-label">Camera Simulation</span>
+                                <span class="sys-value" id="monitor-sim-status">Inactive</span>
+                            </div>
+                            <div class="sys-item">
+                                <span class="sys-label">Last Updated</span>
+                                <span class="sys-value" id="last-updated">--:--:--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="monitor-card activity-card">
+                        <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</h3>
+                        <div class="activity-feed" id="activity-feed">
+                            <div class="activity-item">
+                                <div class="activity-icon"><i class="fa-solid fa-circle-info"></i></div>
+                                <div class="activity-text">System started. Waiting for events...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== VIEW: MY BOOKINGS ===== -->
+        <div class="view-panel" id="view-bookings">
+            <div class="bookings-panel">
+                <div class="bookings-header">
+                    <h2><i class="fa-solid fa-clock-rotate-left"></i> My Booking History</h2>
+                </div>
+                <div class="bookings-list" id="bookings-list">
+                    <div class="empty-state">
+                        <i class="fa-solid fa-ticket"></i>
+                        <p>No bookings yet. Book a slot from the Parking Map!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Booking Confirmation Modal -->
+    <div class="modal-overlay" id="booking-modal" style="display:none;">
+        <div class="modal-card glass-card">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div class="modal-icon" id="modal-icon"><i class="fa-solid fa-car"></i></div>
+            <h3 id="modal-title">Book Slot</h3>
+            <p id="modal-desc">Confirm your booking for this slot?</p>
+            <div class="modal-details" id="modal-details"></div>
+
+            <!-- Duration Input -->
+            <div class="modal-input-section" id="duration-section">
+                <label class="modal-input-label"><i class="fa-solid fa-clock"></i> Planned Parking Duration</label>
+                <div class="duration-options">
+                    <button class="duration-btn" onclick="setDuration(30)">30 min</button>
+                    <button class="duration-btn active" onclick="setDuration(60)">1 hr</button>
+                    <button class="duration-btn" onclick="setDuration(120)">2 hr</button>
+                    <button class="duration-btn" onclick="setDuration(180)">3 hr</button>
+                    <button class="duration-btn" onclick="setDuration(0)">Custom</button>
+                </div>
+                <div class="custom-duration" id="custom-duration-wrapper" style="display:none;">
+                    <input type="number" id="custom-duration-input" min="10" max="1440" placeholder="Minutes"
+                        class="modal-input-field">
+                </div>
+            </div>
+
+            <!-- EV Battery Input (shown only for EV slots) -->
+            <div class="modal-input-section ev-charge-section" id="ev-charge-section" style="display:none;">
+                <label class="modal-input-label"><i class="fa-solid fa-battery-half"></i> Current Battery Level</label>
+                <div class="battery-input-wrapper">
+                    <input type="range" id="battery-slider" min="0" max="99" value="20" class="battery-slider"
+                        oninput="updateBatteryCalc()">
+                    <div class="battery-display">
+                        <div class="battery-visual">
+                            <div class="battery-body">
+                                <div class="battery-fill" id="battery-fill" style="width:20%"></div>
+                            </div>
+                            <div class="battery-tip"></div>
+                        </div>
+                        <span class="battery-pct-label" id="battery-pct-label">20%</span>
+                    </div>
+                </div>
+                <div class="charge-estimate" id="charge-estimate">
+                    <div class="estimate-row">
+                        <span><i class="fa-solid fa-clock"></i> Est. Charge Time</span>
+                        <strong id="est-charge-time">-- calculating --</strong>
+                    </div>
+                    <div class="estimate-row">
+                        <span><i class="fa-solid fa-bolt"></i> Energy Needed</span>
+                        <strong id="est-energy-needed">--</strong>
+                    </div>
+                    <div class="estimate-row">
+                        <span><i class="fa-solid fa-charging-station"></i> Charger Power</span>
+                        <strong id="est-charger-power">--</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+                <button class="modal-btn confirm" id="modal-confirm-btn" onclick="confirmBooking()">
+                    <i class="fa-solid fa-check"></i> Confirm Booking
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ====== GLOBALS ======
+        const API_BASE = window.location.origin + '/api';
+        let currentUser = null;
+        let authToken = null;
+        let allSlots = [];
+        let pendingBookingSlot = null;
+        let pollInterval = null;
+        let cameraInterval = null;
+        let simulationActive = false;
+        let selectedDuration = 60; // default 1 hour
+        let isReleaseMode = false;
+
+        // ====== AUTH CHECK ======
+        function initAuth() {
+            authToken = localStorage.getItem('parkev_token');
+            const userData = localStorage.getItem('parkev_user');
+            if (!authToken || !userData) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            currentUser = JSON.parse(userData);
+            document.getElementById('user-greeting').textContent = `Hello, ${currentUser.name.split(' ')[0]}`;
+            document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+            return true;
+        }
+
+        function logout() {
+            localStorage.removeItem('parkev_token');
+            localStorage.removeItem('parkev_user');
+            window.location.href = 'login.html';
+        }
+
+        // ====== VIEW SWITCHING ======
+        function switchView(view) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.nav-tab[data-view="${view}"]`).classList.add('active');
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`view-${view}`).classList.add('active');
+
+            if (view === 'monitor') loadOccupancy();
+            if (view === 'bookings') loadBookings();
+        }
+
+        // ====== TOAST NOTIFICATIONS ======
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const icons = { success: 'circle-check', error: 'circle-exclamation', info: 'circle-info', warning: 'triangle-exclamation' };
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<i class="fa-solid fa-${icons[type] || 'circle-info'}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.add('fade-out'); setTimeout(() => toast.remove(), 300); }, 4000);
+        }
+
+        // ====== FETCH SLOTS ======
+        async function fetchSlots() {
+            try {
+                const res = await fetch(`${API_BASE}/slots`);
+                const data = await res.json();
+                allSlots = data.slots;
+                renderSlots(data.slots, data.stats);
+                updateMonitorStats(data.slots, data.stats);
+                fetchActiveBooking();
+            } catch (err) {
+                console.error('Error fetching slots:', err);
+            }
+        }
+
+        // ====== RENDER PARKING GRID ======
+        function renderSlots(slots, stats) {
+            const unifiedContainer = document.getElementById('unified-slots');
+
+            // Update stat cards
+            document.getElementById('total-slots').textContent = stats.total;
+            document.getElementById('vacant-slots').textContent = stats.vacant;
+            document.getElementById('occupied-slots').textContent = stats.occupied;
+            document.getElementById('ev-available').textContent = stats.evVacant || (stats.evTotal - stats.evOccupied);
+
+            // Overall count
+            document.getElementById('zone-a-count').textContent = `${stats.vacant} / ${stats.total} available`;
+
+            // Render ALL slots into one grid
+            unifiedContainer.innerHTML = slots.map(slot => {
+                const isEv = slot.type === 'ev';
+                const isFacultyOnly = slot.facultyOnly;
+                const userAffiliation = currentUser.affiliation || 'Other';
+                const canBook = !isFacultyOnly || userAffiliation === 'Faculty' || currentUser.role === 'admin';
+                return `
+                <div class="slot-card ${isEv ? 'ev-slot' : ''} ${slot.status} ${isFacultyOnly ? 'faculty-slot' : ''}" onclick="handleSlotClick('${slot.slotId}')" id="slot-${slot.slotId}">
+                    <div class="slot-number">${slot.slotNumber}</div>
+                    ${isEv ? `<div class="slot-ev-badge"><i class="fa-solid fa-bolt"></i> ${slot.evPower}</div>` : ''}
+                    ${isFacultyOnly ? `<div class="slot-faculty-badge"><i class="fa-solid fa-user-tie"></i> FACULTY</div>` : ''}
+                    <div class="slot-icon">
+                        ${slot.status === 'occupied' ? '<i class="fa-solid fa-car"></i>' :
+                    slot.status === 'maintenance' ? '<i class="fa-solid fa-wrench"></i>' :
+                    isFacultyOnly && !canBook ? '<i class="fa-solid fa-lock"></i>' :
+                    isEv ? '<i class="fa-solid fa-charging-station"></i>' :
+                        '<i class="fa-solid fa-square-parking"></i>'}
+                    </div>
+                    ${isEv ? `<div class="slot-ev-level">${slot.evLevel}</div><div class="slot-ev-tier">${slot.evLoadTier}</div>` : ''}
+                    <div class="slot-status">${slot.status.charAt(0).toUpperCase() + slot.status.slice(1)}</div>
+                    ${slot.occupantName ? `<div class="slot-occupant">${slot.occupantName}<br><small>${slot.occupantVehicle || ''}</small></div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        // ====== HANDLE SLOT CLICK ======
+        function handleSlotClick(slotId) {
+            const slot = allSlots.find(s => s.slotId === slotId);
+            if (!slot) return;
+
+            if (slot.status === 'occupied') {
+                if (slot.occupiedBy === currentUser.userId) {
+                    isReleaseMode = true;
+                    pendingBookingSlot = slot;
+                    document.getElementById('modal-icon').innerHTML = '<i class="fa-solid fa-car-side"></i>';
+                    document.getElementById('modal-title').textContent = 'Release Slot ' + slot.slotNumber;
+                    document.getElementById('modal-desc').textContent = 'Do you want to release your parking slot?';
+                    document.getElementById('modal-details').innerHTML = `
+                        <div class="detail-row"><span>Slot</span><strong>#${slot.slotNumber} (${slot.type === 'ev' ? 'EV - ' + slot.evPower : 'Regular'})</strong></div>
+                        <div class="detail-row"><span>Parked Since</span><strong>${new Date(slot.occupiedAt).toLocaleTimeString()}</strong></div>
+                    `;
+                    document.getElementById('duration-section').style.display = 'none';
+                    document.getElementById('ev-charge-section').style.display = 'none';
+                    document.getElementById('modal-confirm-btn').innerHTML = '<i class="fa-solid fa-door-open"></i> Release Slot';
+                    document.getElementById('modal-confirm-btn').onclick = () => releaseSlot(slotId);
+                    document.getElementById('booking-modal').style.display = 'flex';
+                } else {
+                    showToast(`Slot ${slot.slotNumber} is occupied by ${slot.occupantName || 'another vehicle'} (${slot.occupantVehicle || ''})`, 'warning');
+                }
+                return;
+            }
+
+            if (slot.status === 'maintenance') {
+                showToast(`Slot ${slot.slotNumber} is under maintenance`, 'warning');
+                return;
+            }
+
+            // Vacant slot - offer to book
+            if (slot.type === 'ev' && currentUser.vehicleType !== 'EV') {
+                showToast('Only electric vehicles can book EV charging slots', 'error');
+                return;
+            }
+
+            isReleaseMode = false;
+            pendingBookingSlot = slot;
+            document.getElementById('modal-icon').innerHTML = slot.type === 'ev'
+                ? '<i class="fa-solid fa-charging-station"></i>'
+                : '<i class="fa-solid fa-square-parking"></i>';
+            document.getElementById('modal-title').textContent = 'Book Slot ' + slot.slotNumber;
+            document.getElementById('modal-desc').textContent = slot.type === 'ev'
+                ? `EV Charging Station — ${slot.evPower} (${slot.evLevel})`
+                : 'Regular Parking Slot';
+            document.getElementById('modal-details').innerHTML = `
+                <div class="detail-row"><span>Zone</span><strong>${slot.zone === 'A' ? 'Zone A (Regular)' : 'Zone B (EV)'}</strong></div>
+                <div class="detail-row"><span>Slot</span><strong>#${slot.slotNumber}</strong></div>
+                ${slot.type === 'ev' ? `<div class="detail-row"><span>Charger</span><strong>${slot.evPower} — ${slot.evLoadTier}</strong></div>` : ''}
+                <div class="detail-row"><span>Rate</span><strong>₹${slot.type === 'ev' ? '25' : '15'}/hr</strong></div>
+                <div class="detail-row"><span>Your Vehicle</span><strong>${currentUser.vehicleNumber}</strong></div>
+            `;
+
+            // Show duration picker
+            document.getElementById('duration-section').style.display = 'block';
+            selectedDuration = 60;
+            setDuration(60);
+
+            // Show EV charging input if it's an EV slot
+            if (slot.type === 'ev') {
+                document.getElementById('ev-charge-section').style.display = 'block';
+                document.getElementById('battery-slider').value = 20;
+                document.getElementById('est-charger-power').textContent = slot.evPower;
+                updateBatteryCalc();
+            } else {
+                document.getElementById('ev-charge-section').style.display = 'none';
+            }
+
+            document.getElementById('modal-confirm-btn').innerHTML = '<i class="fa-solid fa-check"></i> Confirm Booking';
+            document.getElementById('modal-confirm-btn').onclick = () => confirmBooking();
+            document.getElementById('booking-modal').style.display = 'flex';
+        }
+
+        // Duration picker
+        function setDuration(mins) {
+            document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('active'));
+            if (mins === 0) {
+                // Custom
+                document.getElementById('custom-duration-wrapper').style.display = 'block';
+                event.target.classList.add('active');
+                return;
+            }
+            document.getElementById('custom-duration-wrapper').style.display = 'none';
+            selectedDuration = mins;
+            event.target.classList.add('active');
+        }
+
+        // EV Battery Calculator
+        function updateBatteryCalc() {
+            const pct = parseInt(document.getElementById('battery-slider').value);
+            document.getElementById('battery-pct-label').textContent = pct + '%';
+            document.getElementById('battery-fill').style.width = pct + '%';
+
+            // Color the battery
+            const fill = document.getElementById('battery-fill');
+            if (pct < 20) fill.style.background = 'var(--red)';
+            else if (pct < 50) fill.style.background = 'var(--amber)';
+            else if (pct < 80) fill.style.background = 'var(--green)';
+            else fill.style.background = 'var(--cyan)';
+
+            if (!pendingBookingSlot || pendingBookingSlot.type !== 'ev') return;
+
+            const chargerKw = parseFloat(pendingBookingSlot.evPower) || 7.4;
+            const userCapacity = parseFloat(currentUser.evChargingCapacity) || 40;
+            const efficiency = 0.9;
+
+            const energyNeeded = userCapacity * (100 - pct) / 100;
+            let timeHours = energyNeeded / (chargerKw * efficiency);
+
+            // Apply tapering above 80%
+            if (pct < 80) {
+                const energyTo80 = userCapacity * (80 - pct) / 100;
+                const energy80to100 = userCapacity * 0.2;
+                timeHours = (energyTo80 / (chargerKw * efficiency)) + (energy80to100 / (chargerKw * efficiency * 0.7));
+            }
+
+            const displayTime = timeHours >= 1
+                ? `${Math.floor(timeHours)}h ${Math.ceil((timeHours % 1) * 60)}m`
+                : `${Math.ceil(timeHours * 60)} min`;
+
+            document.getElementById('est-charge-time').textContent = pct >= 100 ? 'Fully Charged' : displayTime;
+            document.getElementById('est-energy-needed').textContent = energyNeeded.toFixed(1) + ' kWh';
+        }
+
+        function closeModal() {
+            document.getElementById('booking-modal').style.display = 'none';
+            pendingBookingSlot = null;
+        }
+
+        async function confirmBooking() {
+            if (!pendingBookingSlot) return;
+            const btn = document.getElementById('modal-confirm-btn');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Booking...';
+            btn.disabled = true;
+
+            // Get custom duration if selected
+            const customInput = document.getElementById('custom-duration-input');
+            if (customInput && document.getElementById('custom-duration-wrapper').style.display !== 'none' && customInput.value) {
+                selectedDuration = parseInt(customInput.value) || 60;
+            }
+
+            // Build body
+            const body = { plannedDuration: selectedDuration };
+            if (pendingBookingSlot.type === 'ev') {
+                body.currentBatteryPct = parseInt(document.getElementById('battery-slider').value);
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/slots/${pendingBookingSlot.slotId}/book`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                let msg = `Slot ${pendingBookingSlot.slotNumber} booked for ${selectedDuration >= 60 ? (selectedDuration / 60) + 'h' : selectedDuration + 'min'}!`;
+                if (data.chargingEstimate) {
+                    msg += ` Charging: ~${data.chargingEstimate.displayTime}`;
+                }
+                showToast(msg, 'success');
+                closeModal();
+                fetchSlots();
+            } catch (err) {
+                showToast(err.message, 'error');
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Confirm Booking';
+                btn.disabled = false;
+            }
+        }
+
+        async function releaseSlot(slotId) {
+            const btn = document.getElementById('modal-confirm-btn');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Releasing...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/slots/${slotId}/release`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                showToast(data.message, 'success');
+                closeModal();
+                fetchSlots();
+            } catch (err) {
+                showToast(err.message, 'error');
+                btn.innerHTML = '<i class="fa-solid fa-door-open"></i> Release Slot';
+                btn.disabled = false;
+            }
+        }
+
+        // ====== ACTIVE BOOKING ======
+        async function fetchActiveBooking() {
+            try {
+                const res = await fetch(`${API_BASE}/bookings/active`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await res.json();
+                const widget = document.getElementById('active-booking-widget');
+                const body = document.getElementById('active-booking-body');
+
+                if (data.booking) {
+                    widget.style.display = 'block';
+                    const b = data.booking;
+                    const cp = data.chargingProgress;
+                    const cs = data.chargingSession;
+
+                    let html = `
+                        <div class="booking-info-grid">
+                            <div class="info-item"><span class="info-label">Slot</span><span class="info-value">#${b.slotNumber}</span></div>
+                            <div class="info-item"><span class="info-label">Type</span><span class="info-value">${b.slotType === 'ev' ? 'EV - ' + b.evPower : 'Regular'}</span></div>
+                            <div class="info-item"><span class="info-label">Since</span><span class="info-value">${new Date(b.startTime).toLocaleTimeString()}</span></div>
+                            <div class="info-item"><span class="info-label">Elapsed</span><span class="info-value">${b.elapsedMinutes} min</span></div>
+                            <div class="info-item"><span class="info-label">Vehicle</span><span class="info-value">${b.vehicleNumber}</span></div>
+                            <div class="info-item"><span class="info-label">Rate</span><span class="info-value">₹${b.amount}/hr</span></div>
+                        </div>
+                    `;
+
+                    // Parking duration countdown
+                    if (b.plannedDuration) {
+                        const parkPct = Math.min(100, Math.round((b.elapsedMinutes / b.plannedDuration) * 100));
+                        html += `
+                        <div class="parking-duration-bar">
+                            <div class="duration-bar-header">
+                                <span><i class="fa-solid fa-clock"></i> Parking Duration</span>
+                                <span class="${b.isOvertime ? 'overtime-label' : ''}">
+                                    ${b.isOvertime ? '⚠️ OVERTIME' : b.remainingDisplay + ' remaining'}
+                                </span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill ${b.isOvertime ? 'overtime' : ''}" style="width:${parkPct}%"></div>
+                            </div>
+                            <div class="duration-bar-footer">
+                                <span>0 min</span>
+                                <span>${b.plannedDuration >= 60 ? (b.plannedDuration / 60) + 'h' : b.plannedDuration + ' min'}</span>
+                            </div>
+                        </div>`;
+                    }
+
+                    // EV Charging Progress
+                    if (cp && cs) {
+                        html += `
+                        <div class="ev-charging-progress">
+                            <div class="charging-progress-header">
+                                <span><i class="fa-solid fa-bolt charging-icon"></i> EV Charging Status</span>
+                                <span class="charging-tier">${cs.loadTier} (${b.evPower})</span>
+                            </div>
+                            <div class="battery-progress-visual">
+                                <div class="battery-progress-bar">
+                                    <div class="battery-body-lg">
+                                        <div class="battery-fill-lg ${cp.isComplete ? 'complete' : ''}" style="width:${cp.currentPct}%"></div>
+                                        <span class="battery-pct-inside">${cp.currentPct}%</span>
+                                    </div>
+                                    <div class="battery-tip-lg"></div>
+                                </div>
+                                <div class="battery-labels">
+                                    <span>${cp.initialPct}% start</span>
+                                    <span>${cp.isComplete ? '✅ Fully Charged!' : cp.remainingDisplay + ' remaining'}</span>
+                                    <span>100% target</span>
+                                </div>
+                            </div>
+                            <div class="charging-stats-grid">
+                                <div class="charge-stat"><span>Energy</span><strong>${cp.energyDelivered} / ${cp.estimatedTotalKwh} kWh</strong></div>
+                                <div class="charge-stat"><span>Battery</span><strong>${cp.currentPct}%</strong></div>
+                                <div class="charge-stat"><span>Progress</span><strong>${cp.progressPct}%</strong></div>
+                                <div class="charge-stat"><span>Time Left</span><strong>${cp.isComplete ? 'Done' : cp.remainingDisplay}</strong></div>
+                            </div>
+                        </div>`;
+                    }
+
+                    body.innerHTML = html;
+                } else {
+                    widget.style.display = 'none';
+                }
+            } catch (err) {
+                console.error('Active booking error:', err);
+            }
+        }
+
+
+
+        // ====== MONITOR — Stats ======
+        function updateMonitorStats(slots, stats) {
+            const pct = stats.total > 0 ? Math.round((stats.occupied / stats.total) * 100) : 0;
+            document.getElementById('occupancy-pct').textContent = pct + '%';
+            document.getElementById('legend-vacant').textContent = stats.vacant;
+            document.getElementById('legend-occupied').textContent = stats.occupied;
+            document.getElementById('legend-ev').textContent = stats.evTotal;
+            document.getElementById('legend-maint').textContent = stats.maintenance;
+
+            // Donut chart
+            const vacantPct = (stats.vacant / stats.total) * 100;
+            const occupiedPct = (stats.occupied / stats.total) * 100;
+            document.getElementById('donut-vacant').setAttribute('stroke-dasharray', `${vacantPct} ${100 - vacantPct}`);
+            document.getElementById('donut-occupied').setAttribute('stroke-dasharray', `${occupiedPct} ${100 - occupiedPct}`);
+            document.getElementById('donut-occupied').setAttribute('stroke-dashoffset', `${25 - vacantPct}`);
+
+            // EV Stations list
+            const evSlots = slots.filter(s => s.type === 'ev');
+            document.getElementById('ev-stations-list').innerHTML = evSlots.map(slot => `
+                <div class="ev-station-row ${slot.status}">
+                    <div class="ev-station-info">
+                        <span class="ev-station-num">#${slot.slotNumber}</span>
+                        <span class="ev-station-power">${slot.evPower} — ${slot.evLevel}</span>
+                    </div>
+                    <div class="ev-station-tier">${slot.evLoadTier}</div>
+                    <div class="ev-station-status">
+                        <span class="status-badge ${slot.status}">${slot.status}</span>
+                    </div>
+                    ${slot.occupantName ? `<div class="ev-occupant-info">${slot.occupantName} — ${slot.occupantVehicle}</div>` : ''}
+                </div>
+            `).join('');
+
+            // Last updated
+            document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+        }
+
+        // ====== MONITOR — Full Occupancy Table ======
+        async function loadOccupancy() {
+            try {
+                const res = await fetch(`${API_BASE}/slots/occupancy`);
+                const data = await res.json();
+
+                const tbody = document.getElementById('occupancy-tbody');
+                document.getElementById('occupancy-count').textContent =
+                    `${data.summary.totalOccupied} / ${data.summary.totalSlots} occupied`;
+
+                tbody.innerHTML = data.occupancy.map(slot => {
+                    const isOccupied = slot.status === 'occupied';
+                    const o = slot.occupant;
+
+                    return `
+                    <tr class="occ-row ${slot.status} ${slot.type === 'ev' ? 'ev-row' : ''}">
+                        <td><strong>#${slot.slotNumber}</strong></td>
+                        <td>${slot.zone === 'A' ? '🅰️ Zone A' : '🅱️ Zone B'}</td>
+                        <td>${slot.type === 'ev' ? `⚡ EV <small>${slot.evPower}</small>` : '🅿️ Regular'}</td>
+                        <td><span class="status-badge ${slot.status}">${slot.status}</span></td>
+                        <td>${o ? `<strong>${o.name}</strong>${o.isSimulated ? ' <small class="sim-label">SIM</small>' : ''}` : '<span class="empty-cell">—</span>'}</td>
+                        <td>${o ? o.email : '<span class="empty-cell">—</span>'}</td>
+                        <td>${o ? o.phone : '<span class="empty-cell">—</span>'}</td>
+                        <td>${o ? `<code>${o.vehicleNumber}</code>` : '<span class="empty-cell">—</span>'}</td>
+                        <td>${o ? formatVehicleType(o.vehicleType) : '<span class="empty-cell">—</span>'}</td>
+                        <td>${isOccupied && slot.occupiedAt ? new Date(slot.occupiedAt).toLocaleTimeString() : '<span class="empty-cell">—</span>'}</td>
+                        <td>${slot.duration ? `<span class="duration-badge">${slot.duration.display}</span>` : '<span class="empty-cell">—</span>'}</td>
+                    </tr>`;
+                }).join('');
+
+                // Update activity feed
+                updateActivityFeed(data.occupancy);
+
+            } catch (err) {
+                console.error('Occupancy load error:', err);
+            }
+        }
+
+        function formatVehicleType(type) {
+            if (!type) return '—';
+            switch (type) {
+                case 'EV': return '⚡ EV';
+                case 'Petrol': return '⛽ Petrol';
+                case 'Diesel': return '🛢️ Diesel';
+                default: return type;
+            }
+        }
+
+        function updateActivityFeed(occupancy) {
+            const feed = document.getElementById('activity-feed');
+            const occupied = occupancy.filter(s => s.status === 'occupied' && s.occupant);
+
+            if (occupied.length === 0) {
+                feed.innerHTML = `
+                    <div class="activity-item">
+                        <div class="activity-icon"><i class="fa-solid fa-circle-info"></i></div>
+                        <div class="activity-text">No active occupants. Start the camera simulation or book a slot.</div>
+                    </div>`;
+                return;
+            }
+
+            feed.innerHTML = occupied.map(s => `
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fa-solid ${s.type === 'ev' ? 'fa-bolt' : 'fa-car'}" style="color: ${s.type === 'ev' ? '#06b6d4' : '#6366f1'}"></i>
+                    </div>
+                    <div class="activity-text">
+                        <strong>${s.occupant.name}</strong> — ${s.occupant.vehicleNumber} in Slot #${s.slotNumber}
+                        ${s.duration ? `<small>(${s.duration.display})</small>` : ''}
+                        ${s.chargingSession ? '<span class="charging-label">⚡ Charging</span>' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ====== MY BOOKINGS ======
+        async function loadBookings() {
+            try {
+                const res = await fetch(`${API_BASE}/bookings`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await res.json();
+                const container = document.getElementById('bookings-list');
+
+                if (!data.bookings || data.bookings.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fa-solid fa-ticket"></i>
+                            <p>No bookings yet. Book a slot from the Parking Map!</p>
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = data.bookings.map(b => `
+                    <div class="booking-row ${b.status}">
+                        <div class="booking-slot">
+                            <span class="booking-slot-num">#${b.slotNumber}</span>
+                            <span class="booking-slot-type">${b.slotType === 'ev' ? 'EV ' + (b.evLoadTier || '') : 'Regular'}</span>
+                        </div>
+                        <div class="booking-time">
+                            <span>${new Date(b.startTime).toLocaleString()}</span>
+                            <span>${b.endTime ? '→ ' + new Date(b.endTime).toLocaleTimeString() : ''}</span>
+                        </div>
+                        <div class="booking-meta">
+                            <span class="booking-vehicle">${b.vehicleNumber}</span>
+                            <span class="booking-amount">₹${b.amount}</span>
+                        </div>
+                        <div class="booking-status">
+                            <span class="status-badge ${b.status}">${b.status}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Bookings error:', err);
+            }
+        }
+
+        // ====== HEALTH CHECK ======
+        async function checkHealth() {
+            try {
+                const res = await fetch(`${API_BASE}/health`);
+                const data = await res.json();
+                document.getElementById('data-layer').textContent = data.dataLayer === 'mock' ? 'Mock (Development)' : 'AWS DynamoDB';
+            } catch (err) {
+                document.getElementById('data-layer').textContent = 'Offline';
+            }
+        }
+
+        // ====== INIT ======
+        if (initAuth()) {
+            fetchSlots();
+            checkHealth();
+            // Poll every 5 seconds for real-time updates
+            pollInterval = setInterval(fetchSlots, 5000);
+        }
+    </script>
+</body>
+
+</html>

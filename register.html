@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ParkEV — Create Account</title>
+    <meta name="description" content="Register for ParkEV Smart Parking. Book slots and manage EV charging.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg:       #f4f6f9;
+            --surface:  #ffffff;
+            --surface2: #f8f9fb;
+            --border:   #dde1e8;
+            --border2:  #c9cfd9;
+            --accent:   #4f6ef7;
+            --accent-h: #6b84f8;
+            --accent-d: rgba(79,110,247,0.10);
+            --green:    #16a34a;
+            --green-d:  rgba(22,163,74,0.08);
+            --teal:     #0891b2;
+            --teal-d:   rgba(8,145,178,0.08);
+            --amber:    #d97706;
+            --red:      #dc2626;
+            --text:     #1a202c;
+            --sub:      #4a5568;
+            --muted:    #a0aec0;
+            --r:        10px;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Left panel */
+        .left-panel {
+            width: 380px; min-height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            padding: 48px 36px;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
+        .brand-mark {
+            width: 40px; height: 40px; background: var(--accent);
+            border-radius: 11px; display: flex; align-items: center; justify-content: center;
+            font-size: 19px; color: #fff;
+        }
+        .brand-name { font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+
+        .left-title { font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.3px; }
+        .left-title span { color: var(--accent-h); }
+        .left-desc { font-size: 13px; color: var(--sub); line-height: 1.7; margin-bottom: 32px; }
+
+        .step-guide { display: flex; flex-direction: column; gap: 0; }
+        .sg-item {
+            display: flex; gap: 14px;
+            padding: 0 0 24px 0;
+            position: relative;
+        }
+        .sg-item:not(:last-child)::before {
+            content: '';
+            position: absolute;
+            left: 15px; top: 32px;
+            width: 2px; bottom: 0;
+            background: var(--border2);
+        }
+        .sg-dot {
+            width: 32px; height: 32px; min-width: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--border2);
+            background: var(--surface2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; color: var(--muted);
+            position: relative; z-index: 1;
+            transition: all 0.2s;
+        }
+        .sg-dot.done { background: var(--green); border-color: var(--green); color: #0a1a12; }
+        .sg-dot.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .sg-text { padding-top: 5px; }
+        .sg-text strong { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+        .sg-text span { font-size: 12px; color: var(--muted); }
+
+        .left-footer {
+            margin-top: auto; padding-top: 24px;
+            border-top: 1px solid var(--border);
+            font-size: 12px; color: var(--muted);
+        }
+        .left-footer a { color: var(--accent-h); text-decoration: none; }
+
+        /* Right */
+        .right-panel {
+            flex: 1; display: flex; align-items: flex-start;
+            justify-content: center; padding: 40px 24px;
+            overflow-y: auto;
+        }
+        .form-box { width: 100%; max-width: 440px; }
+
+        .form-heading { font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.3px; }
+        .form-sub { font-size: 13px; color: var(--sub); margin-bottom: 24px; }
+
+        .alert {
+            display: none; align-items: center; gap: 9px;
+            padding: 11px 14px; border-radius: var(--r);
+            font-size: 13px; margin-bottom: 16px;
+        }
+        .alert-error  { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.25);  color: #fca5a5; display: flex; }
+        .alert-success { background: var(--green-d); border: 1px solid rgba(34,197,94,0.25); color: #86efac; display: flex; }
+
+        /* Form steps */
+        .step { display: none; }
+        .step.active { display: block; animation: fadeUp 0.2s ease; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+        .field { margin-bottom: 13px; }
+
+        .input-row {
+            display: flex; align-items: center;
+            background: var(--surface); border: 1px solid var(--border2);
+            border-radius: var(--r); padding: 0 14px; gap: 10px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .input-row:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+        .input-row i { color: var(--muted); font-size: 14px; flex-shrink: 0; }
+        .input-row input {
+            flex: 1; background: transparent; border: none;
+            color: var(--text); padding: 12px 0;
+            font-family: inherit; font-size: 13.5px; outline: none;
+        }
+        .input-row input::placeholder { color: var(--muted); }
+        .eye-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 4px; transition: color 0.15s; }
+        .eye-btn:hover { color: var(--sub); }
+
+        /* Strength */
+        .strength-row { display: flex; align-items: center; gap: 10px; margin-top: 7px; }
+        .strength-bar { flex: 1; height: 3px; background: var(--border2); border-radius: 2px; overflow: hidden; }
+        .strength-fill { height: 100%; width: 0%; transition: width 0.3s, background 0.3s; border-radius: 2px; }
+        .strength-label { font-size: 11px; color: var(--muted); min-width: 65px; text-align: right; }
+
+        /* Vehicle selector */
+        .vtype-grid { display: flex; gap: 8px; }
+        .vtype-opt { flex: 1; cursor: pointer; }
+        .vtype-opt input { display: none; }
+        .vtype-card {
+            text-align: center; padding: 14px 8px;
+            background: var(--surface2);
+            border: 1.5px solid var(--border2);
+            border-radius: var(--r);
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            font-size: 12px; color: var(--muted);
+            transition: all 0.15s; cursor: pointer;
+        }
+        .vtype-card i { font-size: 20px; }
+        .vtype-card span { font-weight: 600; font-size: 12.5px; }
+        .vtype-card:hover { border-color: rgba(255,255,255,0.2); color: var(--sub); }
+        .vtype-opt input:checked + .vtype-card { border-color: var(--accent); background: var(--accent-d); color: var(--accent-h); }
+        .vtype-opt.ev input:checked + .vtype-card { border-color: var(--teal); background: var(--teal-d); color: var(--teal); }
+
+        /* EV charger selector */
+        .charger-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .charger-opt { cursor: pointer; }
+        .charger-opt input { display: none; }
+        .charger-card {
+            padding: 14px 12px; text-align: center;
+            background: var(--surface2); border: 1.5px solid var(--border2);
+            border-radius: var(--r); transition: all 0.15s;
+        }
+        .charger-card .ck-power { font-size: 18px; font-weight: 800; color: var(--text); display: block; font-family: 'Outfit', sans-serif; }
+        .charger-card .ck-label { font-size: 11px; color: var(--muted); margin-top: 3px; display: block; }
+        .charger-card .ck-slot  { font-size: 10px; color: var(--muted); margin-top: 2px; display: block; opacity: 0.7; }
+        .charger-opt input:checked + .charger-card { border-color: var(--teal); background: var(--teal-d); }
+        .charger-opt input:checked + .charger-card .ck-power { color: var(--teal); }
+        .charger-card:hover { border-color: rgba(56,189,248,0.3); }
+
+        .hint { font-size: 11.5px; color: var(--muted); margin: -8px 0 12px; line-height: 1.5; }
+
+        /* Step actions */
+        .btn-next, .btn-submit {
+            width: 100%; padding: 13px;
+            background: var(--accent); color: #fff;
+            border: none; border-radius: var(--r);
+            font-family: inherit; font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: background 0.15s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            margin-top: 4px;
+        }
+        .btn-next:hover, .btn-submit:hover { background: var(--accent-h); }
+        .btn-next:disabled, .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .step2-actions { display: flex; gap: 8px; margin-top: 4px; }
+        .btn-back {
+            flex: 0 0 auto; width: 44px; height: 44px;
+            background: var(--surface2); border: 1px solid var(--border2);
+            color: var(--sub); border-radius: var(--r);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; cursor: pointer; transition: all 0.15s;
+        }
+        .btn-back:hover { color: var(--text); background: var(--surface); }
+        .step2-actions .btn-submit { flex: 1; }
+
+        .tos-row {
+            display: flex; align-items: flex-start; gap: 9px;
+            font-size: 12.5px; color: var(--sub); margin-bottom: 14px; cursor: pointer;
+        }
+        .tos-row input { accent-color: var(--accent); margin-top: 2px; flex-shrink: 0; }
+        .tos-row a { color: var(--accent-h); text-decoration: none; }
+
+        .footer-link { text-align: center; font-size: 13px; color: var(--muted); margin-top: 18px; }
+        .footer-link a { color: var(--accent-h); text-decoration: none; font-weight: 600; }
+
+        .toast-wrap { position:fixed; top:16px; right:16px; z-index:999; display:flex; flex-direction:column; gap:6px; }
+        .toast {
+            background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--r);
+            padding: 12px 16px; font-size: 13px;
+            display: flex; align-items: center; gap: 8px; min-width: 240px;
+            transform: translateX(110%); transition: transform 0.25s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .toast.show { transform: translateX(0); }
+        .toast.t-success { border-left: 3px solid var(--green); }
+        .toast.t-success i { color: var(--green); }
+        .toast.t-error { border-left: 3px solid var(--red); }
+        .toast.t-error i { color: var(--red); }
+
+        @media(max-width: 760px) { .left-panel { display: none; } }
+    </style>
+</head>
+<body>
+
+<!-- Left Panel -->
+<div class="left-panel">
+    <div class="brand">
+        <div class="brand-mark"><i class="fa-solid fa-charging-station"></i></div>
+        <span class="brand-name">ParkEV</span>
+    </div>
+
+    <h2 class="left-title">Create your<br><span>ParkEV account</span></h2>
+    <p class="left-desc">Register in 2 quick steps and start booking parking slots instantly. EV users get access to dedicated charging bays.</p>
+
+    <div class="step-guide">
+        <div class="sg-item">
+            <div class="sg-dot active" id="sg-1">1</div>
+            <div class="sg-text">
+                <strong>Owner Details</strong>
+                <span>Name, email, and password</span>
+            </div>
+        </div>
+        <div class="sg-item">
+            <div class="sg-dot" id="sg-2">2</div>
+            <div class="sg-text">
+                <strong>Vehicle Details</strong>
+                <span>Vehicle type and registration number</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="left-footer">
+        Already have an account? <a href="login.html">Sign in here</a>
+    </div>
+</div>
+
+<!-- Right Form -->
+<div class="right-panel">
+    <div class="form-box">
+        <h1 class="form-heading" id="step-heading">Owner Information</h1>
+        <p class="form-sub" id="step-sub">Let's start with your personal details</p>
+
+        <div class="alert" id="alert-box"></div>
+
+        <form id="reg-form">
+            <!-- Step 1 -->
+            <div class="step active" id="step-1">
+                <div class="field">
+                    <p class="hint" style="margin-top:0;margin-bottom:8px">What is your affiliation?</p>
+                    <div class="vtype-grid" style="margin-bottom: 12px; grid-template-columns: repeat(3, 1fr); display: grid; gap: 8px;">
+                        <label class="vtype-opt ev" style="cursor:pointer">
+                            <input type="radio" name="userRole" value="Student" onchange="toggleRoleFields()">
+                            <div class="vtype-card" style="padding:10px 4px;">
+                                <i class="fa-solid fa-user-graduate"></i>
+                                <span>Student</span>
+                            </div>
+                        </label>
+                        <label class="vtype-opt ev" style="cursor:pointer">
+                            <input type="radio" name="userRole" value="Faculty" onchange="toggleRoleFields()">
+                            <div class="vtype-card" style="padding:10px 4px;">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                                <span>Faculty</span>
+                            </div>
+                        </label>
+                        <label class="vtype-opt ev" style="cursor:pointer">
+                            <input type="radio" name="userRole" value="Other" onchange="toggleRoleFields()" checked>
+                            <div class="vtype-card" style="padding:10px 4px;">
+                                <i class="fa-solid fa-user"></i>
+                                <span>Other</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="field" id="role-id-section" style="display: none; margin-bottom: 16px;">
+                    <div class="input-row">
+                        <i class="fa-solid fa-id-card"></i>
+                        <input type="text" id="role-id-input" placeholder="ID Number">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="input-row">
+                        <i class="fa-regular fa-user"></i>
+                        <input type="text" id="name" placeholder="Full name" required autocomplete="name">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="input-row">
+                        <i class="fa-solid fa-phone"></i>
+                        <input type="tel" id="phone" placeholder="Phone number (optional)" autocomplete="tel">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="input-row">
+                        <i class="fa-regular fa-envelope"></i>
+                        <input type="email" id="reg-email" placeholder="Email address" required autocomplete="email">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="input-row">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="reg-pw" placeholder="Password (min 8 characters)" minlength="8" required autocomplete="new-password">
+                        <button type="button" class="eye-btn" onclick="togglePass('reg-pw', this)"><i class="fa-regular fa-eye"></i></button>
+                    </div>
+                    <div class="strength-row">
+                        <div class="strength-bar"><div class="strength-fill" id="sf"></div></div>
+                        <span class="strength-label" id="sl">Enter password</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-next" onclick="goStep2()">
+                    <span>Next: Vehicle Details</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step" id="step-2">
+                <div class="field">
+                    <div class="vtype-grid">
+                        <label class="vtype-opt ev">
+                            <input type="radio" name="vtype" value="EV">
+                            <div class="vtype-card">
+                                <i class="fa-solid fa-bolt"></i>
+                                <span>Electric (EV)</span>
+                            </div>
+                        </label>
+                        <label class="vtype-opt">
+                            <input type="radio" name="vtype" value="Petrol">
+                            <div class="vtype-card">
+                                <i class="fa-solid fa-gas-pump"></i>
+                                <span>Petrol</span>
+                            </div>
+                        </label>
+                        <label class="vtype-opt">
+                            <input type="radio" name="vtype" value="Diesel">
+                            <div class="vtype-card">
+                                <i class="fa-solid fa-oil-can"></i>
+                                <span>Diesel</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="input-row">
+                        <i class="fa-solid fa-car"></i>
+                        <input type="text" id="vnum" placeholder="e.g. KA 01 AB 1234" required style="text-transform:uppercase" autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- EV Charger section — hidden until EV selected -->
+                <div class="field" id="ev-section" style="display:none;">
+                    <p class="hint" style="margin:0 0 10px;"><i class="fa-solid fa-bolt" style="color:#38bdf8;margin-right:5px"></i>Select the charger level your vehicle supports</p>
+                    <div class="charger-grid">
+                        <label class="charger-opt">
+                            <input type="radio" name="evCap" value="7.4 kW">
+                            <div class="charger-card">
+                                <span class="ck-power">7.4 kW</span>
+                                <span class="ck-label">Level 2 AC</span>
+                                <span class="ck-slot">&#8195;Slot 6</span>
+                            </div>
+                        </label>
+                        <label class="charger-opt">
+                            <input type="radio" name="evCap" value="22 kW">
+                            <div class="charger-card">
+                                <span class="ck-power">22 kW</span>
+                                <span class="ck-label">Level 2 Fast AC</span>
+                                <span class="ck-slot">&#8195;Slot 7</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <label class="tos-row">
+                    <input type="checkbox" id="tos">
+                    I agree to the <a href="#" onclick="return false">Terms of Service</a> and <a href="#" onclick="return false">Privacy Policy</a>
+                </label>
+
+                <div class="step2-actions">
+                    <button type="button" class="btn-back" onclick="goStep1()" title="Back">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <button type="submit" class="btn-submit" id="reg-btn">
+                        <span>Create Account</span>
+                        <i class="fa-solid fa-user-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <p class="footer-link">Already have an account? <a href="login.html">Sign in</a></p>
+    </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+    const API = window.location.origin + '/api';
+
+    function togglePass(id, btn) {
+        const inp = document.getElementById(id);
+        const ico = btn.querySelector('i');
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+        ico.classList.toggle('fa-eye');
+        ico.classList.toggle('fa-eye-slash');
+    }
+
+    function toggleRoleFields() {
+        const role = document.querySelector('input[name="userRole"]:checked').value;
+        const sec = document.getElementById('role-id-section');
+        const inp = document.getElementById('role-id-input');
+
+        if (role === 'Student') {
+            sec.style.display = 'block';
+            inp.placeholder = 'University Registration Number';
+            inp.required = true;
+        } else if (role === 'Faculty') {
+            sec.style.display = 'block';
+            inp.placeholder = 'Faculty ID';
+            inp.required = true;
+        } else {
+            sec.style.display = 'none';
+            inp.required = false;
+            inp.value = '';
+        }
+    }
+
+    function showAlert(msg, type = 'error') {
+        const box = document.getElementById('alert-box');
+        box.className = `alert alert-${type}`;
+        box.innerHTML = `<i class="fa-solid fa-${type==='error'?'circle-exclamation':'circle-check'}"></i> ${msg}`;
+        box.style.display = 'flex';
+        setTimeout(() => box.style.display = 'none', 5000);
+    }
+
+    function toast(msg, type = 'success') {
+        const wrap = document.getElementById('toast-wrap');
+        const t = document.createElement('div');
+        t.className = `toast t-${type}`;
+        t.innerHTML = `<i class="fa-solid fa-${type==='success'?'circle-check':'circle-exclamation'}"></i> ${msg}`;
+        wrap.appendChild(t);
+        requestAnimationFrame(() => t.classList.add('show'));
+        setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
+    }
+
+    // Password strength
+    document.getElementById('reg-pw').addEventListener('input', function() {
+        const v = this.value, sf = document.getElementById('sf'), sl = document.getElementById('sl');
+        let s = 0;
+        if (v.length >= 8) s++; if (v.length >= 12) s++;
+        if (/[A-Z]/.test(v)) s++; if (/[0-9]/.test(v)) s++; if (/[^A-Za-z0-9]/.test(v)) s++;
+        const i = Math.min(s, 4);
+        const cols = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4'];
+        const labs = ['Very Weak','Weak','Fair','Strong','Very Strong'];
+        const wids = ['20%','40%','60%','80%','100%'];
+        sf.style.width = v ? wids[i] : '0%';
+        sf.style.background = cols[i];
+        sl.textContent = v ? labs[i] : 'Enter password';
+    });
+
+    // Vehicle type toggle
+    document.querySelectorAll('input[name="vtype"]').forEach(r => {
+        r.addEventListener('change', function() {
+            document.getElementById('ev-section').style.display = this.value === 'EV' ? 'block' : 'none';
+        });
+    });
+
+    function goStep2() {
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const pw = document.getElementById('reg-pw').value;
+        if (!name || !email || !pw) { showAlert('Please fill in all required fields.'); return; }
+        if (pw.length < 8) { showAlert('Password must be at least 8 characters.'); return; }
+
+        document.getElementById('step-1').classList.remove('active');
+        document.getElementById('step-2').classList.add('active');
+        document.getElementById('sg-1').classList.add('done');
+        document.getElementById('sg-2').classList.add('active');
+        document.getElementById('step-heading').textContent = 'Vehicle Information';
+        document.getElementById('step-sub').textContent = 'Tell us about your vehicle';
+    }
+
+    function goStep1() {
+        document.getElementById('step-2').classList.remove('active');
+        document.getElementById('step-1').classList.add('active');
+        document.getElementById('sg-2').classList.remove('active');
+        document.getElementById('step-heading').textContent = 'Owner Information';
+        document.getElementById('step-sub').textContent = "Let's start with your personal details";
+    }
+
+    document.getElementById('reg-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const btn = document.getElementById('reg-btn');
+
+        // Basic validation for Step 1 fields (already handled by goStep2, but good to re-check on submit)
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const pw = document.getElementById('reg-pw').value;
+        const role = document.querySelector('input[name="userRole"]:checked').value;
+        const affiliationId = document.getElementById('role-id-input').value.trim();
+
+        if (!name || !email || !pw) {
+            goStep1();
+            showAlert('Please complete all fields in Step 1', 'error');
+            return;
+        }
+        if (pw.length < 8) {
+            goStep1();
+            showAlert('Password must be at least 8 characters.', 'error');
+            return;
+        }
+        if (role !== 'Other' && !affiliationId) {
+            goStep1();
+            showAlert(`Please enter your ${role === 'Student' ? 'University Registration Number' : 'Faculty ID'}`, 'error');
+            return;
+        }
+
+        const vtype = document.querySelector('input[name="vtype"]:checked');
+        if (!vtype) { showAlert('Please select a vehicle type.'); return; }
+        const vnum = document.getElementById('vnum').value.trim();
+        if (!vnum) { showAlert('Please enter your car number.'); return; }
+        if (vtype.value === 'EV' && !document.querySelector('input[name="evCap"]:checked')) {
+            showAlert('Please select your EV charger compatibility.'); return;
+        }
+        if (!document.getElementById('tos').checked) { showAlert('Please agree to the Terms of Service.'); return; }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Creating account…';
+
+        const payload = {
+            name:     document.getElementById('name').value.trim(),
+            phone:    document.getElementById('phone').value.trim() || undefined,
+            email:    document.getElementById('reg-email').value.trim(),
+            password: document.getElementById('reg-pw').value,
+            affiliation: role,
+            affiliationId: affiliationId || undefined, // Only send if not 'Other' or if it has a value
+            vehicleType:   vtype.value,
+            vehicleNumber: vnum.toUpperCase(),
+            evChargingCapacity: vtype.value === 'EV'
+                ? (document.querySelector('input[name="evCap"]:checked')?.value || '7.4 kW')
+                : null
+        };
+
+        try {
+            const res = await fetch(`${API}/auth/register`, {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Registration failed');
+            localStorage.setItem('parkev_token', data.token);
+            localStorage.setItem('parkev_user', JSON.stringify(data.user));
+            toast('Account created! Welcome, ' + data.user.name);
+            setTimeout(() => { window.location.href = 'dashboard.html'; }, 900);
+        } catch (err) {
+            showAlert(err.message);
+            btn.disabled = false;
+            btn.innerHTML = '<span>Create Account</span><i class="fa-solid fa-user-plus"></i>';
+        }
+    });
+</script>
+</body>
+</html>

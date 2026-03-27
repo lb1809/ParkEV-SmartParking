@@ -28,7 +28,7 @@ app.use(helmet({
 }));
 
 app.use(cors({
-    origin: '*', // Allow all origins for Wi-Fi hosting on local network
+    origin: true, // Dynamically reflects request origin to allow cross-device Wi-Fi connections
     credentials: true
 }));
 

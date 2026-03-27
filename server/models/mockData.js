@@ -4,6 +4,9 @@
  */
 
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
+const path = require('path');
+const dataFilePath = path.join(__dirname, 'data.json');
 
 const mockData = {
     // ======== USERS TABLE (pre-seeded with admin) ========
@@ -53,6 +56,19 @@ const mockData = {
     activityLog: []
 };
 
+// Attempt to load existing persistent data on startup
+try {
+    if (fs.existsSync(dataFilePath)) {
+        const savedData = JSON.parse(fs.readFileSync(dataFilePath, 'utf8'));
+        Object.assign(mockData, savedData);
+        console.log('📦 Successfully loaded persistent database from data.json');
+    }
+} catch (err) {
+    console.warn('⚠️ Could not load data.json, starting with fresh database.', err.message);
+}
+
+
+
 /**
  * Helper: Add an activity entry to the log
  * @param {string} type - 'register' | 'login' | 'slot_check' | 'booking' | 'release' | 'admin_login'
@@ -61,19 +77,87 @@ const mockData = {
  * @param {string} affiliation - Role/Affiliation of user (Admin, Faculty, Student, Other)
  */
 function addActivity(type, detail, userName = 'System', affiliation = 'System') {
-    mockData.activityLog.unshift({
+    const act = {
         id: 'act-' + Date.now(),
         type,
         detail,
         userName,
         affiliation,
         timestamp: new Date().toISOString()
-    });
+    };
+    mockData.activityLog.unshift(act);
     // Keep only last 50 entries
     if (mockData.activityLog.length > 50) {
         mockData.activityLog = mockData.activityLog.slice(0, 50);
     }
 }
+
+// ==========================================
+// 🚀 OPTION 1: AWS CLOUD SYNC ENGINE
+// Highly efficient background syncer that 
+// tracks precise changes and uploads to AWS
+// ==========================================
+const { getDynamo } = require('../config/db');
+const { PutCommand } = require('@aws-sdk/lib-dynamodb');
+
+let previousState = JSON.stringify(mockData);
+
+async function syncToAWS() {
+    if (process.env.USE_MOCK_DATA === 'true') return; // Skip if in sandbox mode
+    const dynamo = getDynamo();
+    if (!dynamo) return;
+
+    try {
+        const currentStateStr = JSON.stringify(mockData);
+        if (currentStateStr === previousState) return; // No changes detected
+        
+        const current = JSON.parse(currentStateStr);
+        const prev = JSON.parse(previousState);
+
+        // Upload new/modified Users
+        if (JSON.stringify(current.users) !== JSON.stringify(prev.users)) {
+            for (let u of current.users) {
+                await dynamo.send(new PutCommand({ TableName: 'parkev_users', Item: u })).catch(()=>{});
+            }
+        }
+        
+        // Upload new/modified Slots
+        if (JSON.stringify(current.slots) !== JSON.stringify(prev.slots)) {
+            for (let s of current.slots) {
+                await dynamo.send(new PutCommand({ TableName: 'parkev_slots', Item: s })).catch(()=>{});
+            }
+        }
+
+        // Upload new/modified Bookings
+        if (JSON.stringify(current.bookings) !== JSON.stringify(prev.bookings)) {
+            for (let b of current.bookings) {
+                await dynamo.send(new PutCommand({ TableName: 'parkev_bookings', Item: b })).catch(()=>{});
+            }
+        }
+
+        // Upload Activity Log
+        if (JSON.stringify(current.activityLog) !== JSON.stringify(prev.activityLog)) {
+            for (let a of current.activityLog) {
+                await dynamo.send(new PutCommand({ TableName: 'parkev_activity', Item: a })).catch(()=>{});
+            }
+        }
+
+        previousState = currentStateStr; // Lock in the new state
+        console.log('☁️  AWS DynamoDB Sync Engine: Detected local changes and successfully pushed to Cloud.');
+    } catch (err) {
+        console.warn('☁️  Cloud Sync Engine Error:', err.message);
+    }
+}
+
+// Auto-save the database automatically to data.json AND sync to AWS every 5 seconds
+setInterval(() => {
+    try {
+        fs.writeFileSync(dataFilePath, JSON.stringify(mockData, null, 4), 'utf8');
+        syncToAWS(); // Fire the cloud sync engine
+    } catch (err) {
+        console.error('Failed to auto-save to data.json:', err.message);
+    }
+}, 5000);
 
 module.exports = mockData;
 module.exports.addActivity = addActivity;

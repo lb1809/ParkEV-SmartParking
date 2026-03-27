@@ -271,7 +271,9 @@
         function getAuthHeaders() {
             return {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('parkev_token')
+                'Authorization': 'Bearer ' + localStorage.getItem('parkev_token'),
+                'ngrok-skip-browser-warning': 'true',
+                'Bypass-Tunnel-Reminder': 'true'
             };
         }
 

@@ -383,7 +383,7 @@
         // ====== FETCH SLOTS ======
         async function fetchSlots() {
             try {
-                const res = await fetch(`${API_BASE}/slots`);
+                const res = await fetch(`${API_BASE}/slots`, { headers: { 'ngrok-skip-browser-warning': 'true', 'Bypass-Tunnel-Reminder': 'true' } });
                 const data = await res.json();
                 allSlots = data.slots;
                 renderSlots(data.slots, data.stats);
@@ -586,7 +586,9 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
+                        'Authorization': `Bearer ${authToken}`,
+                        'ngrok-skip-browser-warning': 'true',
+                        'Bypass-Tunnel-Reminder': 'true'
                     },
                     body: JSON.stringify(body)
                 });
@@ -617,7 +619,9 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
+                        'Authorization': `Bearer ${authToken}`,
+                        'ngrok-skip-browser-warning': 'true',
+                        'Bypass-Tunnel-Reminder': 'true'
                     }
                 });
                 const data = await res.json();
@@ -762,7 +766,7 @@
         // ====== MONITOR — Full Occupancy Table ======
         async function loadOccupancy() {
             try {
-                const res = await fetch(`${API_BASE}/slots/occupancy`);
+                const res = await fetch(`${API_BASE}/slots/occupancy`, { headers: { 'ngrok-skip-browser-warning': 'true', 'Bypass-Tunnel-Reminder': 'true' } });
                 const data = await res.json();
 
                 const tbody = document.getElementById('occupancy-tbody');
@@ -879,7 +883,7 @@
         // ====== HEALTH CHECK ======
         async function checkHealth() {
             try {
-                const res = await fetch(`${API_BASE}/health`);
+                const res = await fetch(`${API_BASE}/health`, { headers: { 'ngrok-skip-browser-warning': 'true', 'Bypass-Tunnel-Reminder': 'true' } });
                 const data = await res.json();
                 document.getElementById('data-layer').textContent = data.dataLayer === 'mock' ? 'Mock (Development)' : 'AWS DynamoDB';
             } catch (err) {

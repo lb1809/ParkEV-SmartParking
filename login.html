@@ -283,7 +283,11 @@ document.getElementById('login-form').addEventListener('submit', async e => {
   btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Signing in…';
   try {
     const r = await fetch(`${API}/auth/login`, {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
+      method: 'POST', 
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': '69420' // Bypasses ngrok warning page which causes HTML/JSON token errors
+      },
       body: JSON.stringify({
         email:    document.getElementById('email').value.trim(),
         password: document.getElementById('password').value
@@ -316,7 +320,11 @@ async function handleGoogle() {
 
     // 3. Send it to our backend — backend verifies with Firebase Admin SDK
     const r = await fetch(`${API}/auth/google`, {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
+      method: 'POST', 
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': '69420'
+      },
       body: JSON.stringify({ idToken })
     });
     const d = await r.json();
@@ -355,7 +363,11 @@ async function doAdmin() {
   btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying…';
   try {
     const r = await fetch(`${API}/auth/login`, {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
+      method: 'POST', 
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': '69420'
+      },
       body: JSON.stringify({ email, password: pw })
     });
     const d = await r.json();

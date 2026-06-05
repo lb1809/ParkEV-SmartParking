@@ -101,7 +101,7 @@
     gap: 8px;
 }
 
-.table-wrapper { overflow-x: auto; }
+.table-wrapper { overflow-x: auto; overflow-y: auto; max-height: 600px; }
 
 /* ── Admin Table ── */
 .admin-table {
@@ -357,16 +357,12 @@
 .activity-empty i { font-size: 28px; margin-bottom: 10px; display: block; opacity: 0.4; }
 .activity-empty p { font-size: 13px; }
 
-/* ── Admin Parking Map Grid ── */
+/* ── Admin Parking Map Grid (overridden by JS inline styles) ── */
 .admin-parking-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 12px;
     padding: 16px 0;
+    overflow-y: auto;
+    max-height: 700px;
 }
-
-@media (max-width: 1100px) { .admin-parking-grid { grid-template-columns: repeat(4, 1fr); } }
-@media (max-width: 700px)  { .admin-parking-grid { grid-template-columns: repeat(2, 1fr); } }
 
 .admin-slot-card {
     background: rgba(62,207,142,0.05);
@@ -437,4 +433,9 @@
 @media (max-width: 768px) {
     .admin-table { font-size: 12px; }
     .admin-table thead th, .admin-table tbody td { padding: 10px 8px; }
+}
+
+/* ── Camera Module ── */
+.camera-module {
+    padding: 20px;
 }

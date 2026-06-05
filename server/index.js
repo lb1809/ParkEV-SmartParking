@@ -120,4 +120,14 @@ async function start() {
     });
 }
 
-start();
+// If not running on Vercel serverless, start the server normally
+if (process.env.VERCEL !== '1') {
+    start();
+} else {
+    // On Vercel, we need to initialize the DB without app.listen
+    initDynamo();
+    initFirebase();
+}
+
+module.exports = app;
+

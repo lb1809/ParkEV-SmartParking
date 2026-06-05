@@ -10,7 +10,93 @@ const express = require('express');
 const router = express.Router();
 const mockData = require('../models/mockData');
 const { addActivity } = require('../models/mockData');
+const { EV_TEMP_CONFIG } = require('../models/mockData');
 const { authenticate } = require('../middleware/auth');
+
+// ============================================================
+// ⚡ EV BATTERY SAFETY MONITOR ENGINE
+// Tracks temperature of every active EV charging session.
+// Triggers auto power cut-off if temp exceeds critical level.
+// ============================================================
+function runBatterySafetyCheck() {
+    const now = new Date().toISOString();
+    const activeSessions = mockData.chargingSessions.filter(s => s.chargingStatus === 'charging');
+
+    for (const session of activeSessions) {
+        // Initialize temp if first tick
+        if (session.batteryTemp === undefined) {
+            session.batteryTemp = EV_TEMP_CONFIG.BASE_TEMP;
+            session.batteryHealth = 'NORMAL';
+            session.powerCutOff = false;
+        }
+
+        if (session.powerCutOff) {
+            // Cool down after cut-off
+            session.batteryTemp = Math.max(
+                EV_TEMP_CONFIG.BASE_TEMP,
+                +(session.batteryTemp - EV_TEMP_CONFIG.COOL_RATE).toFixed(1)
+            );
+            continue;
+        }
+
+        // Simulate temperature rise (slight random variation)
+        const rise = EV_TEMP_CONFIG.RISE_RATE + (Math.random() * 0.3 - 0.1);
+        session.batteryTemp = +(session.batteryTemp + rise).toFixed(1);
+
+        // Update health status
+        if (session.batteryTemp <= EV_TEMP_CONFIG.NORMAL_MAX) {
+            session.batteryHealth = 'NORMAL';
+        } else if (session.batteryTemp <= EV_TEMP_CONFIG.WARNING_MAX) {
+            session.batteryHealth = 'WARNING';
+            // Log warning once per threshold crossing
+            if (!session._warnLogged) {
+                session._warnLogged = true;
+                const slot = mockData.slots.find(s => s.slotId === session.slotId);
+                addActivity('ev_warning',
+                    `⚠️ High battery temp (${session.batteryTemp}°C) on Slot #${slot ? slot.slotNumber : '?'} — monitoring closely`,
+                    'Safety Monitor', 'System');
+                addDetectionEvent('system', 'BATT_WARNING',
+                    `Slot #${slot ? slot.slotNumber : '?'}: Battery temp ${session.batteryTemp}°C — WARNING threshold crossed`);
+            }
+        } else if (session.batteryTemp > EV_TEMP_CONFIG.CRITICAL_MAX) {
+            // === AUTO POWER CUT-OFF ===
+            session.batteryHealth = 'CRITICAL';
+            session.powerCutOff = true;
+            session.cutOffAt = now;
+
+            const slot = mockData.slots.find(s => s.slotId === session.slotId);
+            if (slot) {
+                slot.status = 'maintenance';
+                slot.occupiedBy = null;
+                slot.occupiedAt = null;
+            }
+
+            // Log critical safety event
+            const alert = {
+                alertId: 'alert-' + Date.now(),
+                slotId: session.slotId,
+                slotNumber: slot ? slot.slotNumber : '?',
+                sessionId: session.sessionId,
+                temperature: session.batteryTemp,
+                triggeredAt: now,
+                resolved: false
+            };
+            mockData.evSafetyAlerts.unshift(alert);
+            if (mockData.evSafetyAlerts.length > 20) mockData.evSafetyAlerts.pop();
+
+            addActivity('ev_cutoff',
+                `🔴 AUTO POWER CUT-OFF: Slot #${slot ? slot.slotNumber : '?'} — Temp ${session.batteryTemp}°C exceeded ${EV_TEMP_CONFIG.CRITICAL_MAX}°C. Charging stopped. Slot set to maintenance.`,
+                'Safety Monitor', 'System');
+            addDetectionEvent('system', 'OVERHEAT_CUTOFF',
+                `⚡ SAFETY: Slot #${slot ? slot.slotNumber : '?'} power cut-off — ${session.batteryTemp}°C`);
+
+            console.log(`🔴 EV SAFETY: Auto cut-off triggered on slot ${slot ? slot.slotNumber : '?'} at ${session.batteryTemp}°C`);
+        }
+    }
+}
+
+// Run battery safety check every 6 seconds
+setInterval(runBatterySafetyCheck, 6000);
 
 // ============================================================
 // Camera Simulation Engine
@@ -167,6 +253,13 @@ function runSimulationTick() {
             areaCam.vehicleCount = mockData.slots.filter(s => s.status === 'occupied').length;
         }
 
+        // Exit camera (reuse entrance or fall back)
+        const exitCam = mockData.cameraFeeds.find(c => c.location.includes('Exit')) ||
+                        mockData.cameraFeeds.find(c => c.location.includes('Entrance'));
+        if (exitCam) {
+            exitCam.lastDetection = now;
+        }
+
         // Complete the booking
         const activeBooking = mockData.bookings.find(b =>
             b.userId === exitedBy && b.status === 'active'
@@ -216,10 +309,11 @@ function stopSimulation() {
 // ============================================================
 // ROUTES
 // ============================================================
+const fs = require('fs');
 
 /**
  * GET /api/slots
- * Returns all 15 slots with current status (public)
+ * Returns all slots along with current status and calculated map typography
  */
 router.get('/', (req, res) => {
     const slotsWithInfo = mockData.slots.map(slot => {
@@ -245,12 +339,32 @@ router.get('/', (req, res) => {
                 result.occupantPhone = slot._simOccupant.phone;
             }
         }
-
-        // Clean internal fields
         delete result._simOccupant;
-
         return result;
     });
+
+    try {
+        const path = require('path');
+        const slotsPath = path.join(__dirname, '..', 'parking_slots.json');
+        if (fs.existsSync(slotsPath)) {
+            const polygonData = JSON.parse(fs.readFileSync(slotsPath, 'utf8'));
+            const BASE_W = 3840;
+            const BASE_H = 2160;
+
+            for (let i = 0; i < slotsWithInfo.length && i < polygonData.length; i++) {
+                const poly = polygonData[i];
+                let sumX = 0, sumY = 0;
+                poly.forEach(pt => { sumX += pt[0]; sumY += pt[1]; });
+                const cx = sumX / poly.length;
+                const cy = sumY / poly.length;
+                
+                slotsWithInfo[i].uiLeft = (cx / BASE_W) * 100;
+                slotsWithInfo[i].uiTop = (cy / BASE_H) * 100;
+            }
+        }
+    } catch (err) {
+        console.error('Failed to map visual topology coordinates:', err.message);
+    }
 
     const stats = {
         total: slotsWithInfo.length,
@@ -282,6 +396,104 @@ router.get('/', (req, res) => {
     }
 
     res.json({ slots: slotsWithInfo, stats });
+});
+
+/**
+ * GET /api/slots/ev-safety
+ * Returns live battery temperature, health status, and safety alerts for all active EV sessions
+ */
+router.get('/ev-safety', (req, res) => {
+    const evSlots = mockData.slots.filter(s => s.type === 'ev');
+    const activeSessions = mockData.chargingSessions.filter(s => s.chargingStatus === 'charging');
+
+    const liveStatus = evSlots.map(slot => {
+        let session = activeSessions.find(s => s.slotId === slot.slotId);
+
+        // If slot is occupied but no charging session exists yet, synthesise one
+        if (!session && slot.status === 'occupied') {
+            session = {
+                sessionId: null,
+                slotId: slot.slotId,
+                batteryTemp: EV_TEMP_CONFIG.BASE_TEMP,
+                batteryHealth: 'NORMAL',
+                powerCutOff: false,
+                cutOffAt: null,
+                chargingStatus: 'charging'
+            };
+            // Push a real session so the safety monitor can track it going forward
+            const synth = {
+                sessionId: 'cs-auto-' + Date.now() + '-' + slot.slotId,
+                bookingId: null,
+                slotId: slot.slotId,
+                userId: slot.occupiedBy,
+                loadTier: slot.evLoadTier,
+                energyDelivered: 0,
+                chargingStatus: 'charging',
+                startedAt: slot.occupiedAt || new Date().toISOString(),
+                completedAt: null,
+                batteryTemp: EV_TEMP_CONFIG.BASE_TEMP,
+                batteryHealth: 'NORMAL',
+                powerCutOff: false
+            };
+            mockData.chargingSessions.push(synth);
+            session = synth;
+        }
+
+        return {
+            slotId: slot.slotId,
+            slotNumber: slot.slotNumber,
+            status: slot.status,
+            evPower: slot.evPower,
+            charging: !!session,
+            batteryTemp: session ? session.batteryTemp : null,
+            batteryHealth: session ? session.batteryHealth : 'IDLE',
+            powerCutOff: session ? session.powerCutOff : false,
+            cutOffAt: session ? session.cutOffAt : null,
+            sessionId: session ? session.sessionId : null,
+            occupantName: slot.occupantName || null
+        };
+    });
+
+    res.json({
+        liveStatus,
+        alerts: mockData.evSafetyAlerts.slice(0, 10),
+        thresholds: EV_TEMP_CONFIG,
+        totalActiveSessions: activeSessions.length,
+        cutoffCount: mockData.evSafetyAlerts.filter(a => !a.resolved).length
+    });
+});
+
+/**
+ * POST /api/slots/ev-safety/:alertId/resolve
+ * Admin resolves a safety alert and restores the slot to vacant
+ */
+router.post('/ev-safety/:alertId/resolve', authenticate, (req, res) => {
+    const { alertId } = req.params;
+    const alert = mockData.evSafetyAlerts.find(a => a.alertId === alertId);
+    if (!alert) return res.status(404).json({ error: 'Alert not found' });
+
+    alert.resolved = true;
+    alert.resolvedAt = new Date().toISOString();
+
+    // Restore slot to vacant
+    const slot = mockData.slots.find(s => s.slotId === alert.slotId);
+    if (slot && slot.status === 'maintenance') {
+        slot.status = 'vacant';
+        slot.occupiedBy = null;
+    }
+
+    // End the session
+    const session = mockData.chargingSessions.find(s => s.sessionId === alert.sessionId);
+    if (session) {
+        session.chargingStatus = 'completed';
+        session.completedAt = new Date().toISOString();
+    }
+
+    addActivity('ev_resolved',
+        `✅ Safety alert resolved for Slot #${alert.slotNumber} — slot restored to VACANT`,
+        req.user?.name || 'Admin', 'Admin');
+
+    res.json({ message: `Alert resolved. Slot #${alert.slotNumber} restored to vacant.` });
 });
 
 /**
@@ -690,6 +902,94 @@ router.post('/:id/release', authenticate, (req, res) => {
         message: `Slot ${slot.slotNumber} released successfully!`,
         slot
     });
+});
+
+/**
+ * POST /api/slots/vision-sync
+ * Webhook for Python YOLOv8 engine to push real-time occupancy updates
+ * Body: { occupancy: [true, false, true, ...] }
+ */
+router.post('/vision-sync', (req, res) => {
+    const { occupancy } = req.body;
+    
+    if (!Array.isArray(occupancy)) {
+        return res.status(400).json({ error: 'Invalid payload. Expected { occupancy: [] }' });
+    }
+
+    const now = new Date().toISOString();
+    let changesCount = 0;
+
+    // Hard-coded manual mapping for AI recognized slots
+    const staticOccupants = {
+        1: { name: 'Student 1', vehicleNumber: 'KA 01 AA 1111', vehicleType: 'Regular', role: 'Student' },
+        2: { name: 'Student 2', vehicleNumber: 'KA 02 BB 2222', vehicleType: 'Regular', role: 'Student' },
+        3: { name: 'Student 3', vehicleNumber: 'KA 03 CC 3333', vehicleType: 'Regular', role: 'Student' },
+        7: { name: 'Student 7', vehicleNumber: 'TS 08 EV 8888', vehicleType: 'Regular', role: 'Student' },
+        9: { name: 'Dr. Likhith', vehicleNumber: 'KA 01 AA 9999', vehicleType: 'Regular', role: 'Faculty' },
+        10: { name: 'Prof. Sharma', vehicleNumber: 'KA 02 BB 1010', vehicleType: 'Regular', role: 'Faculty' },
+        11: { name: 'Dr. Anita', vehicleNumber: 'KA 03 CC 1111', vehicleType: 'Regular', role: 'Faculty' },
+        12: { name: 'Karthik EV', vehicleNumber: 'AP 07 EV 0001', vehicleType: 'EV', role: 'Student' },
+        13: { name: 'Sneha EV', vehicleNumber: 'KA 01 EV 0002', vehicleType: 'EV', role: 'Faculty' }
+    };
+
+    // The Python script sends array elements representing the drawn slots
+    for (let i = 0; i < occupancy.length; i++) {
+        if (i >= mockData.slots.length) break;
+
+        const slot = mockData.slots[i];
+        const isOccupiedAI = occupancy[i];
+
+        // Ensure we only transition state if there is an actual change
+        const isCurrentlyOccupied = slot.status === 'occupied';
+
+        if (isOccupiedAI && !isCurrentlyOccupied) {
+            // Vehicle ENTERED
+            const predefinedUser = staticOccupants[slot.slotNumber];
+
+            slot.status = 'occupied';
+            slot.occupiedBy = 'ai-vision';
+            slot.occupiedAt = now;
+            slot._simOccupant = predefinedUser ? {
+                name: predefinedUser.name,
+                phone: 'Verified',
+                email: 'user' + slot.slotNumber + '@parkev.local',
+                vehicleNumber: predefinedUser.vehicleNumber,
+                vehicleType: predefinedUser.vehicleType,
+                simUserId: 'ai-' + slot.slotNumber
+            } : { 
+                name: 'Unknown (AI Detected)', 
+                phone: 'N/A', 
+                email: 'N/A', 
+                vehicleNumber: 'AI-DETECTED', 
+                vehicleType: 'Regular', 
+                simUserId: 'ai-vision' 
+            };
+            
+            addDetectionEvent('cam-yolo', 'VEHICLE_ENTRY', `YOLOv8 AI detected vehicle parked in Slot #${slot.slotNumber}`);
+            changesCount++;
+
+        } else if (!isOccupiedAI && isCurrentlyOccupied && slot.occupiedBy === 'ai-vision') {
+            // Vehicle LEFT (Only override if it was occupied by AI, not a legit human user)
+            slot.status = 'vacant';
+            slot.occupiedBy = null;
+            slot.occupiedAt = null;
+            delete slot._simOccupant;
+
+            addDetectionEvent('cam-yolo', 'VEHICLE_EXIT', `YOLOv8 AI detected vehicle departed from Slot #${slot.slotNumber}`);
+            changesCount++;
+        }
+    }
+
+    // Ping area camera if changes occurred
+    if (changesCount > 0) {
+        const areaCam = mockData.cameraFeeds.find(c => c.location.includes('Parking Area'));
+        if (areaCam) {
+            areaCam.lastDetection = now;
+            areaCam.vehicleCount = mockData.slots.filter(s => s.status === 'occupied').length;
+        }
+    }
+
+    res.json({ message: 'Vision sync successful', updatedSlots: changesCount });
 });
 
 module.exports = router;

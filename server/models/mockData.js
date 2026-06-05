@@ -25,19 +25,26 @@ const mockData = {
         }
     ],
 
-    // ======== PARKING SLOTS TABLE (7 total: 5 regular + 2 EV) ========
+    // ======== PARKING SLOTS TABLE ========
     slots: [
-        // Zone A — Regular Parking (slots 1-5)
-        // Slots 1-2: Faculty Only | Slots 3-5: Open to all
-        { slotId: 'slot-01', slotNumber: 1, type: 'regular', zone: 'A', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: true },
-        { slotId: 'slot-02', slotNumber: 2, type: 'regular', zone: 'A', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: true },
+        // Zone A — Regular Parking (Students & Others)
+        { slotId: 'slot-01', slotNumber: 1, type: 'regular', zone: 'A', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: false },
+        { slotId: 'slot-02', slotNumber: 2, type: 'regular', zone: 'A', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: false },
         { slotId: 'slot-03', slotNumber: 3, type: 'regular', zone: 'A', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: false },
         { slotId: 'slot-04', slotNumber: 4, type: 'regular', zone: 'A', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: false },
         { slotId: 'slot-05', slotNumber: 5, type: 'regular', zone: 'A', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: false },
+        { slotId: 'slot-06', slotNumber: 6, type: 'regular', zone: 'A', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: false },
+        { slotId: 'slot-07', slotNumber: 7, type: 'regular', zone: 'A', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: false },
+        { slotId: 'slot-08', slotNumber: 8, type: 'regular', zone: 'A', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: false },
 
-        // Zone B — EV Charging Stations (slots 6-7)
-        { slotId: 'slot-06', slotNumber: 6, type: 'ev', zone: 'B', evLoadTier: 'Medium', status: 'vacant', occupiedBy: null, occupiedAt: null, evPower: '7.4 kW', evLevel: 'Level 2 AC', facultyOnly: false },
-        { slotId: 'slot-07', slotNumber: 7, type: 'ev', zone: 'B', evLoadTier: 'High', status: 'vacant', occupiedBy: null, occupiedAt: null, evPower: '22 kW', evLevel: 'Level 2 Fast AC', facultyOnly: false }
+        // Zone F — Faculty Reserved
+        { slotId: 'slot-09', slotNumber: 9, type: 'regular', zone: 'F', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: true },
+        { slotId: 'slot-10', slotNumber: 10, type: 'regular', zone: 'F', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: true },
+        { slotId: 'slot-11', slotNumber: 11, type: 'regular', zone: 'F', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: true },
+
+        // Zone B — EV Charging Stations
+        { slotId: 'slot-12', slotNumber: 12, type: 'ev', zone: 'B', evLoadTier: 'High', status: 'vacant', occupiedBy: null, occupiedAt: null, evPower: '22 kW', evLevel: 'Level 2 Fast AC', facultyOnly: false },
+        { slotId: 'slot-13', slotNumber: 13, type: 'ev', zone: 'B', evLoadTier: 'High', status: 'vacant', occupiedBy: null, occupiedAt: null, evPower: '22 kW', evLevel: 'Level 2 Fast AC', facultyOnly: false }
     ],
 
     // ======== BOOKINGS TABLE (empty) ========
@@ -53,7 +60,20 @@ const mockData = {
     ],
 
     // ======== ACTIVITY LOG (real-time database log for admin) ========
-    activityLog: []
+    activityLog: [],
+
+    // ======== EV BATTERY SAFETY ALERTS ========
+    evSafetyAlerts: []
+};
+
+// ======== EV BATTERY SAFETY CONSTANTS ========
+const EV_TEMP_CONFIG = {
+    NORMAL_MAX:   38,   // °C — safe range
+    WARNING_MAX:  45,   // °C — warn user & admin
+    CRITICAL_MAX: 52,   // °C — auto cut-off power immediately
+    BASE_TEMP:    28,   // °C — starting temp when charging begins
+    RISE_RATE:    0.4,  // °C per tick (simulate heat build-up)
+    COOL_RATE:    1.5   // °C per tick when cooling after cut-off
 };
 
 // Attempt to load existing persistent data on startup
@@ -62,6 +82,21 @@ try {
         const savedData = JSON.parse(fs.readFileSync(dataFilePath, 'utf8'));
         Object.assign(mockData, savedData);
         console.log('📦 Successfully loaded persistent database from data.json');
+        
+        // Force slot synchronization based on YOLOv8 array dimensions
+        if (mockData.slots.length < 13) {
+            const extraSlots = [
+                { slotId: 'slot-08', slotNumber: 8, type: 'regular', zone: 'A', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: false },
+                { slotId: 'slot-09', slotNumber: 9, type: 'regular', zone: 'A', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: false },
+                { slotId: 'slot-10', slotNumber: 10, type: 'regular', zone: 'A', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: false },
+                { slotId: 'slot-11', slotNumber: 11, type: 'regular', zone: 'A', evLoadTier: null, status: 'vacant', occupiedBy: null, occupiedAt: null, facultyOnly: false },
+                { slotId: 'slot-12', slotNumber: 12, type: 'ev', zone: 'B', evLoadTier: 'High', status: 'vacant', occupiedBy: null, occupiedAt: null, evPower: '22 kW', evLevel: 'Level 2 Fast', facultyOnly: false },
+                { slotId: 'slot-13', slotNumber: 13, type: 'ev', zone: 'B', evLoadTier: 'Hyper', status: 'vacant', occupiedBy: null, occupiedAt: null, evPower: '50 kW', evLevel: 'DC Fast Charge', facultyOnly: false }
+            ];
+            const missing = 13 - mockData.slots.length;
+            mockData.slots.push(...extraSlots.slice(-missing)); // Safely append exact missing
+            console.log('🔧 Auto-injected missing slots to match 13-slot system requirement.');
+        }
     }
 } catch (err) {
     console.warn('⚠️ Could not load data.json, starting with fresh database.', err.message);
@@ -161,3 +196,4 @@ setInterval(() => {
 
 module.exports = mockData;
 module.exports.addActivity = addActivity;
+module.exports.EV_TEMP_CONFIG = EV_TEMP_CONFIG;

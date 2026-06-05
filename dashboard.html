@@ -28,9 +28,6 @@
             <button class="nav-tab active" data-view="parking" onclick="switchView('parking')">
                 <i class="fa-solid fa-car"></i> Parking Map
             </button>
-            <button class="nav-tab" data-view="monitor" onclick="switchView('monitor')">
-                <i class="fa-solid fa-chart-line"></i> Monitor
-            </button>
             <button class="nav-tab" data-view="bookings" onclick="switchView('bookings')">
                 <i class="fa-solid fa-clock-rotate-left"></i> My Bookings
             </button>
@@ -407,29 +404,122 @@
             // Overall count
             document.getElementById('zone-a-count').textContent = `${stats.vacant} / ${stats.total} available`;
 
-            // Render ALL slots into one grid
-            unifiedContainer.innerHTML = slots.map(slot => {
-                const isEv = slot.type === 'ev';
-                const isFacultyOnly = slot.facultyOnly;
-                const userAffiliation = currentUser.affiliation || 'Other';
-                const canBook = !isFacultyOnly || userAffiliation === 'Faculty' || currentUser.role === 'admin';
+            // Zone A = slots 1-6, Zone B = slots 7-11, Zone C = slots 12-13 (EV)
+            const zoneA = slots.filter(s => s.slotNumber >= 1 && s.slotNumber <= 6);
+            const zoneB = slots.filter(s => s.slotNumber >= 7 && s.slotNumber <= 11);
+            const zoneC = slots.filter(s => s.slotNumber === 12 || s.slotNumber === 13);
+
+            const sc = (slot) => slot.status === 'occupied' ? '#ef4444' : slot.status === 'maintenance' ? '#f59e0b' : slot.type === 'ev' ? '#22c55e' : '#3b82f6';
+            const icon = (slot, canBook) => slot.status === 'occupied' ? '<i class="fa-solid fa-car"></i>' : slot.facultyOnly && !canBook ? '<i class="fa-solid fa-lock"></i>' : slot.type === 'ev' ? '<i class="fa-solid fa-bolt"></i>' : '<i class="fa-solid fa-square-parking"></i>';
+            const facBadge = (isFac) => isFac ? `<div style="position:absolute;top:-7px;right:-4px;background:#f59e0b;color:#000;font-size:7px;font-weight:900;padding:1px 3px;border-radius:3px;white-space:nowrap;">FAC</div>` : '';
+
+            // Zone A: opens RIGHT toward road (flat right edge, rounded left)
+            const renderA = (slot) => {
+                const c = sc(slot); const isFac = slot.facultyOnly;
+                const canBook = !isFac || (currentUser.affiliation === 'Faculty') || currentUser.role === 'admin';
                 return `
-                <div class="slot-card ${isEv ? 'ev-slot' : ''} ${slot.status} ${isFacultyOnly ? 'faculty-slot' : ''}" onclick="handleSlotClick('${slot.slotId}')" id="slot-${slot.slotId}">
-                    <div class="slot-number">${slot.slotNumber}</div>
-                    ${isEv ? `<div class="slot-ev-badge"><i class="fa-solid fa-bolt"></i> ${slot.evPower}</div>` : ''}
-                    ${isFacultyOnly ? `<div class="slot-faculty-badge"><i class="fa-solid fa-user-tie"></i> FACULTY</div>` : ''}
-                    <div class="slot-icon">
-                        ${slot.status === 'occupied' ? '<i class="fa-solid fa-car"></i>' :
-                    slot.status === 'maintenance' ? '<i class="fa-solid fa-wrench"></i>' :
-                    isFacultyOnly && !canBook ? '<i class="fa-solid fa-lock"></i>' :
-                    isEv ? '<i class="fa-solid fa-charging-station"></i>' :
-                        '<i class="fa-solid fa-square-parking"></i>'}
-                    </div>
-                    ${isEv ? `<div class="slot-ev-level">${slot.evLevel}</div><div class="slot-ev-tier">${slot.evLoadTier}</div>` : ''}
-                    <div class="slot-status">${slot.status.charAt(0).toUpperCase() + slot.status.slice(1)}</div>
-                    ${slot.occupantName ? `<div class="slot-occupant">${slot.occupantName}<br><small>${slot.occupantVehicle || ''}</small></div>` : ''}
+                <div onclick="handleSlotClick('${slot.slotId}')" id="slot-${slot.slotId}"
+                    style="position:relative; width:130px; padding:10px 8px 10px 12px;
+                           border-radius:7px 0 0 7px;
+                           border-top:2px solid ${c}55; border-bottom:2px solid ${c}55; border-left:2px solid ${c}55;
+                           border-right:3px dashed ${c}99;
+                           background:${c}0e; cursor:pointer; text-align:center; transition:all 0.2s;
+                           box-shadow:-3px 0 10px ${c}22;"
+                    onmouseover="this.style.transform='translateX(4px)';this.style.boxShadow='-3px 0 16px ${c}55';"
+                    onmouseout="this.style.transform='translateX(0)';this.style.boxShadow='-3px 0 10px ${c}22';">
+                    ${facBadge(isFac)}
+                    <div style="font-size:12px; font-weight:800; color:${c}; letter-spacing:0.5px;">${slot.slotNumber}</div>
+                    <div style="font-size:18px; color:${c}; margin:3px 0;">${icon(slot, canBook)}</div>
+                    <div style="font-size:8px; font-weight:700; color:${c}; letter-spacing:0.5px;">${slot.status.toUpperCase()}</div>
                 </div>`;
-            }).join('');
+            };
+
+            // Zone B: opens LEFT toward road (flat left edge, rounded right)
+            const renderB = (slot) => {
+                const c = sc(slot); const isFac = slot.facultyOnly;
+                const canBook = !isFac || (currentUser.affiliation === 'Faculty') || currentUser.role === 'admin';
+                return `
+                <div onclick="handleSlotClick('${slot.slotId}')" id="slot-${slot.slotId}"
+                    style="position:relative; width:130px; padding:10px 12px 10px 8px;
+                           border-radius:0 7px 7px 0;
+                           border-top:2px solid ${c}55; border-bottom:2px solid ${c}55; border-right:2px solid ${c}55;
+                           border-left:3px dashed ${c}99;
+                           background:${c}0e; cursor:pointer; text-align:center; transition:all 0.2s;
+                           box-shadow:3px 0 10px ${c}22;"
+                    onmouseover="this.style.transform='translateX(-4px)';this.style.boxShadow='3px 0 16px ${c}55';"
+                    onmouseout="this.style.transform='translateX(0)';this.style.boxShadow='3px 0 10px ${c}22';">
+                    ${facBadge(isFac)}
+                    <div style="font-size:12px; font-weight:800; color:${c}; letter-spacing:0.5px;">${slot.slotNumber}</div>
+                    <div style="font-size:18px; color:${c}; margin:3px 0;">${icon(slot, canBook)}</div>
+                    <div style="font-size:8px; font-weight:700; color:${c}; letter-spacing:0.5px;">${slot.status.toUpperCase()}</div>
+                </div>`;
+            };
+
+            // Zone C: small EV card (neutral, centered)
+            const renderMini = (slot) => {
+                const c = sc(slot);
+                return `
+                <div onclick="handleSlotClick('${slot.slotId}')" id="slot-${slot.slotId}"
+                    style="position:relative; width:64px; padding:6px 4px; border-radius:6px;
+                           border:2px solid ${c}55; background:${c}11; cursor:pointer; text-align:center; transition:all 0.2s;"
+                    onmouseover="this.style.transform='scale(1.08)';"
+                    onmouseout="this.style.transform='scale(1)';">
+                    <div style="font-size:11px; font-weight:800; color:${c};">${slot.slotNumber}</div>
+                    <div style="font-size:14px; color:${c}; margin:2px 0;"><i class="fa-solid fa-bolt"></i></div>
+                    <div style="font-size:8px; font-weight:700; color:${c};">${slot.status.toUpperCase()}</div>
+                </div>`;
+            };
+
+            unifiedContainer.style.cssText = 'display:block; background:transparent; border:none; padding:0;';
+
+            unifiedContainer.innerHTML = `
+                <!-- Parking Lot Map -->
+                <div style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+
+                    <!-- ZONE C: EV slots at the very top, centred above everything -->
+                    <div style="display:flex; align-items:center; gap:10px; padding:8px 16px;
+                                background:var(--surface); border-radius:var(--r); border:1px solid #22c55e44;">
+                        <span style="font-size:9px; font-weight:800; color:#22c55e; letter-spacing:1.5px;">ZONE C ⚡</span>
+                        ${zoneC.map(renderMini).join('')}
+                    </div>
+
+                    <!-- Zone A | road gap | Zone B -->
+                    <div style="display:flex; justify-content:center; align-items:flex-start; gap:0;">
+
+                        <!-- ZONE A: faces RIGHT -->
+                        <div style="display:flex; flex-direction:column; gap:6px; padding:10px 10px 10px 12px;
+                                    background:var(--surface); border-radius:var(--r) 0 0 var(--r);
+                                    border:1px solid #3b82f644; border-right:none; flex-shrink:0;">
+                            <div style="font-size:9px; font-weight:800; color:#3b82f6; letter-spacing:1.5px; text-align:center; margin-bottom:2px;">ZONE A</div>
+                            ${zoneA.map(renderA).join('')}
+                        </div>
+
+                        <!-- Road (fixed width, dashed centre line) -->
+                        <div style="width:100px; flex-shrink:0; position:relative; align-self:stretch;">
+                            <div style="position:absolute; top:0; bottom:0; left:50%; transform:translateX(-50%);
+                                        width:3px; background:repeating-linear-gradient(to bottom,
+                                        #f59e0b 0,#f59e0b 14px,transparent 14px,transparent 26px);
+                                        opacity:0.4;"></div>
+                        </div>
+
+                        <!-- ZONE B: faces LEFT -->
+                        <div style="display:flex; flex-direction:column; gap:6px; padding:10px 12px 10px 10px;
+                                    background:var(--surface); border-radius:0 var(--r) var(--r) 0;
+                                    border:1px solid #a855f744; border-left:none; flex-shrink:0;">
+                            <div style="font-size:9px; font-weight:800; color:#a855f7; letter-spacing:1.5px; text-align:center; margin-bottom:2px;">ZONE B</div>
+                            ${zoneB.map(renderB).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div style="display:flex; gap:16px; margin-top:12px; flex-wrap:wrap;">
+                    <span style="font-size:11px; color:var(--sub);"><span style="color:#3b82f6;">■</span> Zone A — Student/Open (1–6)</span>
+                    <span style="font-size:11px; color:var(--sub);"><span style="color:#a855f7;">■</span> Zone B — General + Faculty 🎓 (7–11)</span>
+                    <span style="font-size:11px; color:var(--sub);"><span style="color:#22c55e;">■</span> Zone C — EV ⚡ (12–13)</span>
+                    <span style="font-size:11px; color:var(--sub);"><span style="color:#ef4444;">■</span> Occupied &nbsp;<span style="color:#3b82f6;">■</span> Vacant</span>
+                </div>
+            `;
         }
 
         // ====== HANDLE SLOT CLICK ======

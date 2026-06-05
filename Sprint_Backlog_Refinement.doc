@@ -1,0 +1,143 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset="utf-8">
+<title>Sprint Backlog Refinement</title>
+<style>
+    body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; padding: 20px; }
+    h1 { color: #2C3E50; font-size: 24pt; border-bottom: 2px solid #34495E; padding-bottom: 5px; }
+    h2 { color: #2980B9; font-size: 18pt; margin-top: 20px; border-bottom: 1px solid #BDC3C7; }
+    h3 { color: #E67E22; font-size: 14pt; margin-top: 15px; }
+    ul { margin-top: 5px; margin-bottom: 15px; }
+    li { margin-bottom: 5px; }
+    strong { color: #333; }
+</style>
+</head>
+<body>
+
+<h1>Sprint Backlog Refinement: PARKEV</h1>
+
+<h2>SPRINT 1: Foundation & Authentication</h2>
+<p><strong>Goal:</strong> Establish the underlying backend architecture, secure identity management, and the hybrid cloud database sync engine.</p>
+
+<h3>1. User Story: Secure Registration & Login</h3>
+<ul>
+    <li><strong>Description:</strong> As a user, I want to securely register my vehicle (Petrol/EV) and log in so that my identity and bookings are safely managed.</li>
+    <li><strong>Acceptance Criteria:</strong>
+        <ul>
+            <li>System must accept email, password, and vehicle details upon registration.</li>
+            <li>Google Firebase integration must allow secure "Sign In with Google".</li>
+            <li>Passwords must not be stored in plain-text.</li>
+        </ul>
+    </li>
+    <li><strong>Tasks Developed:</strong>
+        <ul>
+            <li><em>Task 1.1:</em> Design frontend HTML/CSS login.html and register.html forms.</li>
+            <li><em>Task 1.2:</em> Build Express.js backend routing (/api/auth/login and /api/auth/register).</li>
+            <li><em>Task 1.3:</em> Implement Bcrypt.js for mathematical hashing of passwords.</li>
+            <li><em>Task 1.4:</em> Implement JWT (JSON Web Tokens) to issue secure session keys.</li>
+        </ul>
+    </li>
+</ul>
+
+<h3>2. User Story: Hybrid Cloud Database Synchronization</h3>
+<ul>
+    <li><strong>Description:</strong> As the system, I want to back up high-speed local data to the AWS cloud so that no registered data is lost on server reboots.</li>
+    <li><strong>Acceptance Criteria:</strong>
+        <ul>
+            <li>Application must possess a local data.json fallback database.</li>
+            <li>Changes to the database must sync to AWS DynamoDB every 5 seconds.</li>
+        </ul>
+    </li>
+    <li><strong>Tasks Developed:</strong>
+        <ul>
+            <li><em>Task 2.1:</em> Create internal memory arrays inside mockData.js.</li>
+            <li><em>Task 2.2:</em> Write the file-system module to physically save data.json.</li>
+            <li><em>Task 2.3:</em> Build the .env logic switch to isolate AWS_ACCESS_KEY credentials.</li>
+            <li><em>Task 2.4:</em> Build the Background Sync Worker loop utilizing @aws-sdk/lib-dynamodb.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>SPRINT 2: Core Parking Management & Wi-Fi Networking</h2>
+<p><strong>Goal:</strong> Construct the real-time visual parking dashboard, EV charging tier calculations, and universal network accessibility.</p>
+
+<h3>3. User Story: Real-Time Slot Availability & Booking</h3>
+<ul>
+    <li><strong>Description:</strong> As a driver, I want to view a live map of parking slot availability with distinct EV zones so I can instantly book an empty spot.</li>
+    <li><strong>Acceptance Criteria:</strong>
+        <ul>
+            <li>Dashboard must poll and display live availability for Zone A (Standard) and Zone B (EV).</li>
+            <li>Faculty-only slots (Slot 1 & 2) must reject general student accounts.</li>
+        </ul>
+    </li>
+    <li><strong>Tasks Developed:</strong>
+        <ul>
+            <li><em>Task 3.1:</em> Build the fetchSlots() polling function in dashboard.html.</li>
+            <li><em>Task 3.2:</em> Create the auth.js middleware to restrict access to Faculty-designated slot IDs.</li>
+            <li><em>Task 3.3:</em> Inject ngrok-skip-browser-warning headers to ensure cross-device consistency.</li>
+            <li><em>Task 3.4:</em> Update Node server CORS policy to origin: true.</li>
+        </ul>
+    </li>
+</ul>
+
+<h3>4. User Story: EV Charging Estimate Engine</h3>
+<ul>
+    <li><strong>Description:</strong> As an EV driver, I want to calculate my car's charging time based on the parking slot's output power so I know how long to park.</li>
+    <li><strong>Acceptance Criteria:</strong>
+        <ul>
+            <li>Booking modal must display a slider for current battery percentage.</li>
+            <li>System must dynamically calculate time based on battery capacity and kW output.</li>
+        </ul>
+    </li>
+    <li><strong>Tasks Developed:</strong>
+        <ul>
+            <li><em>Task 4.1:</em> Design interactive battery percentage slider UI.</li>
+            <li><em>Task 4.2:</em> Code the math algorithm: ((100 - currentPct) / 100 * capacity) / SlotPower.</li>
+            <li><em>Task 4.3:</em> Return the mathematical estimation string (e.g., "3h 45m") directly inside the booking confirmation modal.</li>
+        </ul>
+    </li>
+</ul>
+
+<h2>SPRINT 3: Administration & IoT Simulation</h2>
+<p><strong>Goal:</strong> Render a secure environment for system admins to globally monitor the system and test hardware interactions natively.</p>
+
+<h3>5. User Story: Role-Based Admin Dashboard</h3>
+<ul>
+    <li><strong>Description:</strong> As an admin, I want to monitor all active bookings and users divided by affiliation so that I can regulate the parking facility.</li>
+    <li><strong>Acceptance Criteria:</strong>
+        <ul>
+            <li>Admin user logs must have a dedicated security gateway.</li>
+            <li>Users table must be logically partitioned into Faculty, Student, and Other sections.</li>
+            <li>Live Activity Log must display color-coded role tags.</li>
+        </ul>
+    </li>
+    <li><strong>Tasks Developed:</strong>
+        <ul>
+            <li><em>Task 5.1:</em> Build the hidden admin toggle switch on the login screen.</li>
+            <li><em>Task 5.2:</em> Build the /api/admin backend routes validating JWT role === 'admin'.</li>
+            <li><em>Task 5.3:</em> Write javascript logic in admin.html to separate tables by affiliation.</li>
+            <li><em>Task 5.4:</em> Construct CSS color themes (Amber, Cyan, Purple) for activity badges.</li>
+        </ul>
+    </li>
+</ul>
+
+<h3>6. User Story: IoT Camera Simulation Engine</h3>
+<ul>
+    <li><strong>Description:</strong> As the system, I want to simulate physical IoT presence sensors so the codebase can be tested exactly as if real hardware cameras were attached.</li>
+    <li><strong>Acceptance Criteria:</strong>
+        <ul>
+            <li>Admin panel must have a manual toggle for the sensor simulation.</li>
+            <li>While active, the algorithm must randomly update slot occupancy statuses autonomously.</li>
+        </ul>
+    </li>
+    <li><strong>Tasks Developed:</strong>
+        <ul>
+            <li><em>Task 6.1:</em> Establish the simulationInterval Node loop triggering every 4 seconds.</li>
+            <li><em>Task 6.2:</em> Apply Math.random() to selectively toggle vacant/occupied states.</li>
+            <li><em>Task 6.3:</em> Program the Activity Logger to register automated detections as System updates.</li>
+        </ul>
+    </li>
+</ul>
+
+</body>
+</html>

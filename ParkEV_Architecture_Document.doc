@@ -1,0 +1,72 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset="utf-8">
+<title>ParkEV System Architecture Document</title>
+<style>
+    body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; padding: 20px; color: #000; }
+    h1 { color: #2C3E50; font-size: 24pt; border-bottom: 2px solid #34495E; padding-bottom: 5px; }
+    h2 { color: #2980B9; font-size: 18pt; margin-top: 20px; border-bottom: 1px solid #BDC3C7; }
+    h3 { color: #E67E22; font-size: 14pt; margin-top: 15px; }
+    ul { margin-top: 5px; margin-bottom: 15px; }
+    li { margin-bottom: 5px; }
+    strong { color: #333; }
+</style>
+</head>
+<body>
+
+<h1>ParkEV: System Architecture Document</h1>
+<p>This document details the exact technical architecture and data operations of the ParkEV Smart Parking platform.</p>
+
+<h2>1. Complete System Workflow</h2>
+<p><em>This tracks the absolute step-by-step journey of how data moves from the user interfaces deep into the AWS Cloud infrastructure.</em></p>
+
+<h3>Step 1: User Onboarding & Identity Verification</h3>
+<ul>
+    <li>The driver initiates contact through the `login.html` or `register.html` web interfaces.</li>
+    <li><strong>Digital Security:</strong> The Node.js API processes the input. Passwords are mathematically secured using the <code>Bcrypt</code> engine. Or, if the user authorizes Google Sign-In, the Node API verifies the token mathematically via Google's Firebase Admin SDK.</li>
+    <li>Once authenticated, a heavily encrypted <code>JSON Web Token (JWT)</code> is issued to securely track the user's role and identity.</li>
+</ul>
+
+<h3>Step 2: Real-Time Network Polling</h3>
+<ul>
+    <li>The user arrives at the primary Dashboard.</li>
+    <li>The interface fires an API call to <code>/api/slots</code> exactly every 5 seconds to bypass manual refreshing.</li>
+    <li><strong>UI Rendering:</strong> The software dynamically parses the JSON payload to visually separate standard "Zone A" parking from the Electric Vehicle "Zone B" infrastructure.</li>
+</ul>
+
+<h3>Step 3: Access Control & EV Algorithms</h3>
+<ul>
+    <li><strong>Role-Based Access Control (RBAC):</strong> If a standard level "Student" attempts to click on Faculty Priority logic (Slot 1 or 2), the Node.js middleware intercepts the JWT payload, identifies the mismatch, and forcefully blocks the database modification.</li>
+    <li><strong>Dynamic EV Calculator:</strong> When an EV port is selected, the application requests the battery level from the driver. It executes algorithmic estimation [<code>((100 - Battery_Level) * Battery_Capacity) / Platform_kW_Output</code>] to provide highly accurate charging completion timestamps before booking finalization.</li>
+</ul>
+
+<h3>Step 4: The AWS Hybrid Cloud Engine</h3>
+<ul>
+    <li>To prevent high cloud latency on the dashboard UI, the active booking is instantly secured inside a Node.js local cache (<code>data.json</code>) operating at 0ms latency.</li>
+    <li><strong>The Worker Sync:</strong> Simultaneously, the custom background engine boots. It calculates deltas (differences) from the previous state, opens a highly secure payload tunnel directly to Amazon Web Services (AWS), and injects only the new data points into the official <code>parkev_bookings</code> array inside the DynamoDB Cloud.</li>
+</ul>
+
+<h3>Step 5: Administrative Telemetry</h3>
+<ul>
+    <li>A validated "Admin" accesses the private telemetry dashboard.</li>
+    <li>The backend dynamically groups the system's entire raw database table logically into visual "Faculty", "Student", and "Other" arrays.</li>
+    <li>It continually pulls from the <code>parkev_activity</code> log, printing a color-coded feed of all global facility actions in real time.</li>
+</ul>
+
+
+<h2>2. Unified Hardware/Software Architecture</h2>
+
+<p>The system is comprised of four completely decoupled environments, working together over secure REST protocols.</p>
+
+<ul>
+    <li><strong>Frontend Logic (Client Environment)</strong>: Responsible solely for visual rendering, DOM manipulations, EV mathematics, and API HTTP querying. Constructed entirely in HTML5/CSS3 and Vanilla Modern JavaScript without heavy client frameworks.</li>
+    
+    <li><strong>Middleware & Routing (Gateway Environment)</strong>: Express.js actively filters incoming data. It manages CORS bypass headers allowing cross-device Wi-Fi connections (phones/tablets), guards routes via JWT verifications, and enforces anti-DDoS Rate Limiting.</li>
+    
+    <li><strong>Backend Controllers & Emulation (Server Environment)</strong>: Node.js handles the raw logic (creating slots, users, booking logic). Crucially, this layer contains the "IoT Camera Emulator", bypassing absent physical hardware by actively iterating the slot statuses across random intervals natively over the server logic.</li>
+    
+    <li><strong>External Data Storage (Cloud Environment)</strong>: Instead of standard SQL, non-relational highly-scalable documents are securely passed out to external nodes: Google Cloud Firebase (for identity confirmation) and Amazon Web Services DynamoDB (for permanent, secure physical data logging).</li>
+</ul>
+
+</body>
+</html>

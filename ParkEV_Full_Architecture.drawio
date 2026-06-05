@@ -1,0 +1,138 @@
+<mxfile>
+  <diagram name="ParkEV Full Architecture">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- TITLE -->
+        <mxCell id="T1" value="ParkEV: Cloud-Based Smart Parking System with EV Charging — Full Architecture Workflow" style="text;html=1;fontSize=18;fontStyle=1;align=center;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="100" y="10" width="900" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- ========== LAYER 1: IoT HARDWARE + YOLOv8 ========== -->
+        <mxCell id="L1" value="LAYER 1: IoT Hardware &amp; YOLOv8 Detection" style="swimlane;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="70" width="1000" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="CAM" value="CCTV Camera&#xa;(Live Feed)" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;imageAspect=0;image=img/lib/active_directory/generic_server.svg;fillColor=#f8cecc;strokeColor=#b85450;rounded=1;fontSize=11;fontStyle=1;" vertex="1" parent="L1">
+          <mxGeometry x="30" y="40" width="60" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="YOLO" value="YOLOv8&#xa;Object Detection&#xa;(Python)" style="rounded=1;whiteSpace=wrap;fillColor=#e74c3c;strokeColor=#b85450;fontColor=#ffffff;fontStyle=1;fontSize=12;" vertex="1" parent="L1">
+          <mxGeometry x="160" y="40" width="150" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="ESP" value="ESP32 / NodeMCU&#xa;Ultrasonic Sensors" style="rounded=1;whiteSpace=wrap;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=11;" vertex="1" parent="L1">
+          <mxGeometry x="380" y="40" width="150" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="SIM" value="IoT Simulation Engine&#xa;(Node.js Emulator)&#xa;[For Testing]" style="rounded=1;whiteSpace=wrap;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=2;fontSize=11;" vertex="1" parent="L1">
+          <mxGeometry x="600" y="40" width="160" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="RESTOUT" value="REST API Output&#xa;{slotId, status}" style="rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" vertex="1" parent="L1">
+          <mxGeometry x="830" y="40" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Layer 1 arrows -->
+        <mxCell id="a1" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#b85450;" edge="1" source="CAM" target="YOLO" parent="L1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="a2" value="Detected" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#b85450;" edge="1" source="YOLO" target="ESP" parent="L1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="a3" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#b85450;" edge="1" source="ESP" target="RESTOUT" parent="L1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="a4" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=1;strokeColor=#999;dashed=1;" edge="1" source="SIM" target="RESTOUT" parent="L1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ========== LAYER 2: SECURITY GATEWAY ========== -->
+        <mxCell id="L2" value="LAYER 2: Security &amp; Network Gateway" style="swimlane;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="230" width="1000" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="CORS" value="CORS Policy&#xa;(origin: true)" style="rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" vertex="1" parent="L2">
+          <mxGeometry x="30" y="40" width="140" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="JWT" value="JWT Token&#xa;Verification" style="rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" vertex="1" parent="L2">
+          <mxGeometry x="220" y="40" width="140" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="RBAC" value="Role-Based&#xa;Access Control&#xa;(Admin/Faculty/Student)" style="rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" vertex="1" parent="L2">
+          <mxGeometry x="410" y="40" width="170" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="RATE" value="Rate Limiter&#xa;(2000 req/15m)" style="rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" vertex="1" parent="L2">
+          <mxGeometry x="630" y="40" width="140" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="HELMET" value="Helmet.js&#xa;(XSS Protection)" style="rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" vertex="1" parent="L2">
+          <mxGeometry x="820" y="40" width="140" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ========== LAYER 3: NODE.JS BACKEND ========== -->
+        <mxCell id="L3" value="LAYER 3: Node.js + Express Application Core" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="370" width="1000" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="AUTH" value="Auth Controller&#xa;(/api/auth)" style="rounded=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="L3">
+          <mxGeometry x="30" y="40" width="140" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="SLOT" value="Slot Manager&#xa;(/api/slots)" style="rounded=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="L3">
+          <mxGeometry x="220" y="40" width="140" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="BOOK" value="Booking Engine&#xa;+ EV Calculator" style="rounded=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="L3">
+          <mxGeometry x="410" y="40" width="160" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="ADMIN" value="Admin API&#xa;(/api/admin)" style="rounded=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="L3">
+          <mxGeometry x="630" y="40" width="140" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="LOG" value="Activity Logger&#xa;(addActivity)" style="rounded=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="L3">
+          <mxGeometry x="820" y="40" width="140" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ========== LAYER 4: DATABASE ========== -->
+        <mxCell id="L4" value="LAYER 4: Hybrid Database &amp; Cloud Sync" style="swimlane;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="510" width="1000" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="LOCAL" value="Local JSON Cache&#xa;(data.json)&#xa;0ms Latency" style="shape=cylinder3;whiteSpace=wrap;boundedLbl=1;size=10;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=11;" vertex="1" parent="L4">
+          <mxGeometry x="80" y="30" width="150" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="SYNC" value="Cloud Sync Engine&#xa;(Delta Detection)&#xa;Every 5 seconds" style="rounded=1;whiteSpace=wrap;fillColor=#27ae60;strokeColor=#82b366;fontColor=#fff;fontStyle=1;fontSize=11;" vertex="1" parent="L4">
+          <mxGeometry x="350" y="40" width="180" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ========== LAYER 5: EXTERNAL CLOUD ========== -->
+        <mxCell id="L5" value="LAYER 5: External Cloud Services" style="swimlane;startSize=30;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="650" width="1000" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="DYNAMO" value="AWS DynamoDB&#xa;(parkev_users, parkev_slots,&#xa;parkev_bookings, parkev_activity)" style="shape=cylinder3;whiteSpace=wrap;boundedLbl=1;size=10;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=11;" vertex="1" parent="L5">
+          <mxGeometry x="50" y="30" width="250" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="FIRE" value="Google Firebase&#xa;Authentication&#xa;(OAuth 2.0)" style="shape=cylinder3;whiteSpace=wrap;boundedLbl=1;size=10;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=11;" vertex="1" parent="L5">
+          <mxGeometry x="400" y="30" width="200" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="GITHUB" value="GitHub Repository&#xa;(Version Control)" style="shape=cylinder3;whiteSpace=wrap;boundedLbl=1;size=10;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=11;" vertex="1" parent="L5">
+          <mxGeometry x="700" y="30" width="200" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- ========== LAYER 6: CLIENT FRONTEND ========== -->
+        <mxCell id="L6" value="LAYER 6: Client Frontend (Browser)" style="swimlane;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=13;rounded=1;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="50" y="790" width="1000" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="LOGIN" value="Login Page&#xa;(login.html)" style="rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666;fontStyle=1;fontSize=11;" vertex="1" parent="L6">
+          <mxGeometry x="30" y="40" width="130" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="REG" value="Register Page&#xa;(register.html)" style="rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666;fontStyle=1;fontSize=11;" vertex="1" parent="L6">
+          <mxGeometry x="200" y="40" width="140" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="DASH" value="Driver Dashboard&#xa;(dashboard.html)" style="rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666;fontStyle=1;fontSize=11;" vertex="1" parent="L6">
+          <mxGeometry x="390" y="40" width="160" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="ADMINUI" value="Admin Panel&#xa;(admin.html)" style="rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666;fontStyle=1;fontSize=11;" vertex="1" parent="L6">
+          <mxGeometry x="600" y="40" width="140" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="MOBILE" value="Mobile Browser&#xa;(Wi-Fi Access)" style="rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666;fontStyle=1;fontSize=11;" vertex="1" parent="L6">
+          <mxGeometry x="790" y="40" width="140" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ========== INTER-LAYER ARROWS ========== -->
+        <mxCell id="v1" value="Slot Status" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#b85450;verticalAlign=top;" edge="1" source="RESTOUT" target="SLOT" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="v2" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#82b366;" edge="1" source="SYNC" target="DYNAMO" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="v3" value="" style="edgeStyle=orthogonalEdgeStyle;strokeWidth=2;strokeColor=#9673a6;" edge="1" source="AUTH" target="FIRE" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,93 @@
+<mxfile>
+  <diagram name="ParkEV ER Diagram">
+    <mxGraphModel dx="1400" dy="800" grid="1" gridSize="10" guides="1">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- USERS TABLE -->
+        <mxCell id="2" value="USERS" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontStyle=1;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="280" height="370" as="geometry"/>
+        </mxCell>
+        <mxCell id="3" value="PK  userId (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;fontStyle=1;" vertex="1" parent="2"><mxGeometry y="30" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="4" value="     email (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="2"><mxGeometry y="50" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="5" value="     name (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="2"><mxGeometry y="70" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="6" value="     phone (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="2"><mxGeometry y="90" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="7" value="     passwordHash (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="2"><mxGeometry y="110" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="8" value="     vehicleType (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="2"><mxGeometry y="130" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="9" value="     vehicleNumber (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="2"><mxGeometry y="150" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="10" value="     evChargingCapacity (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="2"><mxGeometry y="170" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="11" value="     role (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="2"><mxGeometry y="190" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="12" value="     affiliation (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="2"><mxGeometry y="210" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="13" value="     affiliationId (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="2"><mxGeometry y="230" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="14" value="     googleUid (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="2"><mxGeometry y="250" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="15" value="     createdAt (datetime)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="2"><mxGeometry y="270" width="280" height="20" as="geometry"/></mxCell>
+
+        <!-- PARKING_SLOTS TABLE -->
+        <mxCell id="20" value="PARKING_SLOTS" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontStyle=1;fontSize=14;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="420" y="50" width="280" height="310" as="geometry"/>
+        </mxCell>
+        <mxCell id="21" value="PK  slotId (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;fontStyle=1;" vertex="1" parent="20"><mxGeometry y="30" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="22" value="     slotNumber (int)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="20"><mxGeometry y="50" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="23" value="     type (regular | ev)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="20"><mxGeometry y="70" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="24" value="     zone (A | B)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="20"><mxGeometry y="90" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="25" value="     status (vacant | occupied | reserved)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="20"><mxGeometry y="110" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="26" value="FK  occupiedBy (userId)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;fontStyle=2;" vertex="1" parent="20"><mxGeometry y="130" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="27" value="     evPower (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="20"><mxGeometry y="150" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="28" value="     evLevel (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="20"><mxGeometry y="170" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="29" value="     facultyOnly (boolean)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="20"><mxGeometry y="190" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="30" value="     occupiedAt (datetime)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="20"><mxGeometry y="210" width="280" height="20" as="geometry"/></mxCell>
+
+        <!-- BOOKINGS TABLE -->
+        <mxCell id="40" value="BOOKINGS" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontStyle=1;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="790" y="50" width="280" height="290" as="geometry"/>
+        </mxCell>
+        <mxCell id="41" value="PK  bookingId (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;fontStyle=1;" vertex="1" parent="40"><mxGeometry y="30" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="42" value="FK  userId (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;fontStyle=2;" vertex="1" parent="40"><mxGeometry y="50" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="43" value="FK  slotId (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;fontStyle=2;" vertex="1" parent="40"><mxGeometry y="70" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="44" value="     orderedBy (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="40"><mxGeometry y="90" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="45" value="     vehicleNumber (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="40"><mxGeometry y="110" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="46" value="     vehicleType (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="40"><mxGeometry y="130" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="47" value="     status (active | completed)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="40"><mxGeometry y="150" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="48" value="     bookedAt (datetime)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="40"><mxGeometry y="170" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="49" value="     releasedAt (datetime)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="40"><mxGeometry y="190" width="280" height="20" as="geometry"/></mxCell>
+
+        <!-- ACTIVITY_LOG TABLE -->
+        <mxCell id="60" value="ACTIVITY_LOG" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontStyle=1;fontSize=14;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="50" y="480" width="280" height="190" as="geometry"/>
+        </mxCell>
+        <mxCell id="61" value="PK  id (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;fontStyle=1;" vertex="1" parent="60"><mxGeometry y="30" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="62" value="     type (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="60"><mxGeometry y="50" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="63" value="     detail (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="60"><mxGeometry y="70" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="64" value="     userName (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="60"><mxGeometry y="90" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="65" value="     affiliation (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="60"><mxGeometry y="110" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="66" value="     timestamp (datetime)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="60"><mxGeometry y="130" width="280" height="20" as="geometry"/></mxCell>
+
+        <!-- CAMERA_FEEDS TABLE -->
+        <mxCell id="70" value="CAMERA_FEEDS" style="shape=table;startSize=30;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontStyle=1;fontSize=14;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="420" y="480" width="280" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="71" value="PK  cameraId (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;fontStyle=1;" vertex="1" parent="70"><mxGeometry y="30" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="72" value="     location (string)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="70"><mxGeometry y="50" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="73" value="     status (online | offline)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="70"><mxGeometry y="70" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="74" value="     lastDetection (datetime)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="70"><mxGeometry y="90" width="280" height="20" as="geometry"/></mxCell>
+        <mxCell id="75" value="     vehicleCount (int)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="70"><mxGeometry y="110" width="280" height="20" as="geometry"/></mxCell>
+
+        <!-- RELATIONSHIPS -->
+        <mxCell id="80" value="makes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" edge="1" source="2" target="40" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="81" value="reserved in" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#82b366;fontSize=12;fontStyle=1;" edge="1" source="20" target="40" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="82" value="generates" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#9673a6;fontSize=12;fontStyle=1;" edge="1" source="2" target="60" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="83" value="monitored by" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#b85450;fontSize=12;fontStyle=1;" edge="1" source="20" target="70" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

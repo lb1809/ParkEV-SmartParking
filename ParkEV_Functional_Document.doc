@@ -1,0 +1,133 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset="utf-8">
+<title>Functional Document: ParkEV</title>
+<style>
+    body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 12pt; line-height: 1.6; padding: 20px; color: #000; }
+    h1 { color: #2C3E50; font-size: 20pt; border-bottom: 2px solid #34495E; padding-bottom: 5px; text-align: center; }
+    h2 { color: #2980B9; font-size: 16pt; margin-top: 25px; }
+    h3 { color: #E67E22; font-size: 14pt; margin-top: 15px; }
+    ul { margin-top: 5px; margin-bottom: 15px; }
+    li { margin-bottom: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+</style>
+</head>
+<body>
+
+<h1>Functional Document</h1>
+<h2 style="text-align: center;">CLOUD-BASED SMART PARKING SYSTEM WITH EV CHARGING (PARKEV)</h2>
+
+<h2>1. Introduction</h2>
+<p>The Cloud-Based Smart Parking System with EV Charging (ParkEV) is an intelligent, high-speed environmental facility monitoring platform designed to eliminate urban parking congestion and support the growing Electric Vehicle (EV) ecosystem. With traditional parking lots causing massive fuel waste and range anxiety for EV drivers, there is a critical need for systems that provide real-time, remote slot tracking combined with exact mathematical EV charging estimates.</p>
+<p>This system utilizes IoT simulation, Google Firebase Authentication, and a Node.js backend architecture to instantly calculate live occupancy and mathematical EV charging times. The generated data is processed locally at 0ms latency for a flawless user experience and then autonomously synced securely in the background directly to Amazon Web Services (AWS) DynamoDB. The platform simultaneously provides an executive Admin Dashboard featuring color-coded, real-time activity tracking and strict digital Role-Based Access Control (RBAC) to enforce physical parking zones.</p>
+
+<h2>2. Product Goal</h2>
+<p>The primary goal of this system is to develop a smart platform that can:</p>
+<ul>
+    <li>Provide comprehensive real-time visualizations of all parking slots (Zone A: Standard and Zone B: EV) across internet-enabled devices.</li>
+    <li>Calculate precise charging completion timestamps for EV drivers based on slot kW power output and current vehicle battery percentage.</li>
+    <li>Digitally enforce physical parking rules through Role-Based Access Control (e.g., blocking Student affiliations from booking Priority Faculty slots).</li>
+    <li>Back up operational data persistently and securely using a custom AWS DynamoDB Hybrid Cloud Sync Engine without lagging the web dashboard.</li>
+    <li>Replicate real-world hardware interactions using a built-in autonomous Node.js IoT Camera Simulator.</li>
+</ul>
+
+<h2>3. Demography (Users, Location)</h2>
+<h3>Users</h3>
+<p>The system is specifically designed for multiple distinct tiers of users:</p>
+<ul>
+    <li><strong>Driver (Student/General):</strong> Standard commuters who need to visualize the parking map and book generic slots.</li>
+    <li><strong>Driver (Faculty/Priority):</strong> Elite users whose structural identity allows them to bypass generic limits and book Priority-Locked slots.</li>
+    <li><strong>Administrators/Facility Managers:</strong> Operational staff requiring absolute oversight over live tracking telemetry and security logs.</li>
+</ul>
+<h3>User Characteristics</h3>
+<ul>
+    <li>Basic smartphone or laptop browsing capability.</li>
+    <li>Familiarity with standard Google Sign-In protocols.</li>
+</ul>
+<h3>Location</h3>
+<ul>
+    <li>Primary deployment targeted at University Campuses, Corporate IT Parks, and Smart City structural zones.</li>
+    <li>Supports global scalability by relying on highly distributed cloud clusters (AWS).</li>
+</ul>
+
+<h2>4. Business Processes</h2>
+<p><strong>1. User Authentication Process:</strong><br>
+Users establish identity through an email/password interface encrypted by Bcrypt, or through single-click Google Firebase OAuth. The system provisions a JSON Web Token (JWT) classifying their structural rank.</p>
+
+<p><strong>2. Live Telemetry Polling Process:</strong><br>
+The driver's user interface asynchronously polls the Node.js API every 5 seconds, pulling the exact current state of all parking slots. It renders this directly via color-coded DOM manipulation (Green = Vacant, Red = Occupied).</p>
+
+<p><strong>3. EV Mathematical Calculation Process:</strong><br>
+When an electric slot is clicked, the system prompts the user for their current battery index. Using the formula <code>((100 - Battery_Level) * Vehicle_Capacity) / Slot_Power_Output</code>, the software yields the exact charging duration, appending it to the booking contract.</p>
+
+<p><strong>4. Role-Verification Process:</strong><br>
+Before a reservation commits to memory, the Express.js middleware intercepts the JWT. If a standard user interacts with a slot marked <code>facultyOnly: true</code>, the business logic issues a hard rejection.</p>
+
+<p><strong>5. Hybrid Cloud Sync Process:</strong><br>
+For absolute speed, bookings instantly register in a local memory cache (data.json). An asynchronous Node.js engine verifies the deltas (changes) every 5 seconds and pushes only the new rows to AWS DynamoDB via secure payload.</p>
+
+<p><strong>6. IoT Hardware Simulation Process:</strong><br>
+A Node.js background loop mimics physical YOLOv8 camera detection or ultrasonic hardware by randomly altering slot vacancy data across time intervals to accurately gauge dashboard performance.</p>
+
+
+<h2>5. Features</h2>
+
+<h3>5.1 - Feature 1 – Secure JWT Authentication</h3>
+<p><strong>Description:</strong> Provides encrypted structural access leveraging Bcrypt hashing and Google Firebase integration.</p>
+<p><strong>User Story:</strong> As a driver, I want to securely log in via Google so that I can access my personalized booking menu without memorizing passwords.</p>
+
+<h3>5.2 - Feature 2 – Live Digital Grid Dashboard</h3>
+<p><strong>Description:</strong> Displays a high-contrast mapping of all facility slots, segmented mechanically by Standard and EV zones.</p>
+<p><strong>User Story:</strong> As a driver, I want to see a live visual map of the parking lot so I do not waste time blindly searching for an empty spot.</p>
+
+<h3>5.3 - Feature 3 – Dynamic EV Algorithm</h3>
+<p><strong>Description:</strong> Computes the exact real-time charging duration using the user's specific battery deficit and the hardware slot's configured kilowatt (kW) tier.</p>
+<p><strong>User Story:</strong> As an EV owner, I want to understand my precise charging time based on my current battery percentage so I know when my car will be ready.</p>
+
+<h3>5.4 - Feature 4 – Hardware Simulation Engine</h3>
+<p><strong>Description:</strong> Mimics YOLOv8 camera responses autonomously to test system integration without physical sensors.</p>
+<p><strong>User Story:</strong> As an Administrator, I want to toggle a hardware simulator so I can test dashboard responsiveness against autonomous parking events.</p>
+
+<h3>5.5 - Feature 5 – Executive Admin Panel</h3>
+<p><strong>Description:</strong> An aggregated dashboard separating the global userbase into categorized tables (Faculty vs. Students) complete with a live event logger.</p>
+<p><strong>User Story:</strong> As a Manager, I want to view every booking action color-coded by the user's institutional rank so I can effectively monitor facility health.</p>
+
+<h3>5.6 - Feature 6 – Background AWS Cloud Synchronization</h3>
+<p><strong>Description:</strong> Bypasses typical cloud latency via local 0ms processing, followed by silent asynchronous AWS DynamoDB data pushes.</p>
+<p><strong>User Story:</strong> As the System, I want to continually push delta backups to the cloud so user data survives physical local server failures.</p>
+
+
+<h2>6. Authorization Matrix</h2>
+
+<table>
+    <tr>
+        <th>Role</th>
+        <th>Access Level</th>
+    </tr>
+    <tr>
+        <td><strong>Administrator</strong></td>
+        <td>Full absolute access to the entire stack: IoT testing triggers, User tracking, Global logs, and AWS seeding rights.</td>
+    </tr>
+    <tr>
+        <td><strong>Faculty (Priority)</strong></td>
+        <td>Access to the Standard Dashboard + Exclusive rights to reserve physically protected Priority Zones (Slots 1 & 2).</td>
+    </tr>
+    <tr>
+        <td><strong>Student / General</strong></td>
+        <td>Access constrained to standard Zone A and generic EV spaces. Hard rejection on designated Faculty zones.</td>
+    </tr>
+</table>
+
+<h2>7. Assumptions</h2>
+<ul>
+    <li>The host server environment (Node.js) will remain active and stable to process the internal mathematical evaluations.</li>
+    <li>Consistent Wi-Fi connection is maintained for the execution of background AWS Cloud synchronization API calls.</li>
+    <li>Security configurations, including JWT secret keys and Firebase config paths, are initialized properly upon boot via the `.env` file.</li>
+    <li>If hardware IoT (YOLOv8/ESP32) is deployed, cameras must remain unobstructed to supply accurate boolean data to the REST API.</li>
+    <li>Client browsers possess standard ES6 Javascript execution capabilities without blocking Cross-Origin Requests maliciously.</li>
+</ul>
+
+</body>
+</html>

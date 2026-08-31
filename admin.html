@@ -849,18 +849,14 @@
         refreshAll();
 
         // Auto-refresh every 10 seconds
-        let refreshCount = 0;
         setInterval(() => {
-            refreshCount++;
             loadStats();
             loadActivity();
             loadParkingMap();
             loadEvSafety();
-            if (refreshCount % 3 === 0) {
-                loadSlots();
-                loadUsers();
-                loadBookings();
-            }
+            loadSlots();
+            loadUsers();
+            loadBookings();
         }, 10000);
 
 

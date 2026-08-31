@@ -110,10 +110,11 @@ def yolo_engine():
             last_sync_time = current_time
             def send_sync(occ):
                 try:
-                    requests.post('http://localhost:3001/api/slots/vision-sync', json={'occupancy': occ}, timeout=1)
-                except requests.exceptions.RequestException:
-                    pass
-            threading.Thread(target=send_sync, args=(occupancy,), daemon=True).start() 
+                    resp = requests.post('http://localhost:3001/api/slots/vision-sync', json={'occupancy': occ}, timeout=2)
+                    print(f"Synced {occ} -> {resp.status_code}")
+                except requests.exceptions.RequestException as e:
+                    print(f"Sync failed: {e}")
+            threading.Thread(target=send_sync, args=(occupancy,), daemon=True).start()
 
 if __name__ == "__main__":
     t = threading.Thread(target=yolo_engine)

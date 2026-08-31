@@ -3,7 +3,8 @@
  * AWS DynamoDB client initialization with local mock fallback
  */
 
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 let dynamoClient = null;
 

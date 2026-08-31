@@ -848,7 +848,7 @@
         checkAuth();
         refreshAll();
 
-        // Auto-refresh every 10 seconds
+        // Auto-refresh every 5 seconds
         setInterval(() => {
             loadStats();
             loadActivity();
@@ -857,7 +857,7 @@
             loadSlots();
             loadUsers();
             loadBookings();
-        }, 10000);
+        }, 5000);
 
 
         // ====== CAMERA FEED ======
@@ -953,7 +953,7 @@
                         loadSlots();
                         loadParkingMap();
                         loadStats();
-                    }, 3000);
+                    }, 5000);
                 } else if (!simulationActive && cameraInterval) {
                     clearInterval(cameraInterval);
                     cameraInterval = null;

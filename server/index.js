@@ -46,7 +46,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ====== Serve Static Frontend ======
-app.use(express.static(path.join(__dirname, '..')));
+app.use(express.static(path.join(__dirname, '..'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html') || filePath.endsWith('.js') || filePath.endsWith('.css')) {
+            res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            res.setHeader('Surrogate-Control', 'no-store');
+        }
+    }
+}));
 
 // ====== API Routes ======
 app.use('/api/auth', authRoutes);

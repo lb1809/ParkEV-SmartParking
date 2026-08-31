@@ -585,55 +585,55 @@
                 const data = await res.json();
 
                 const container = document.getElementById('bookings-tables-container');
-                const groups = { 'Faculty': [], 'Student': [], 'Other': [] };
 
-                data.bookings.forEach(b => {
-                    const aff = (b.userAffiliation === 'Faculty' || b.userAffiliation === 'Student') ? b.userAffiliation : 'Other';
-                    groups[aff].push(b);
-                });
+                if (!data.bookings || data.bookings.length === 0) {
+                    container.innerHTML = '<p style="padding: 20px; text-align: center; color: var(--muted);">No bookings found.</p>';
+                    return;
+                }
 
-                container.innerHTML = ['Faculty', 'Student', 'Other'].map(group => {
-                    if (groups[group].length === 0) return '';
-                    return `
-                    <div style="margin-bottom: 24px;">
-                        <h4 style="margin-bottom: 12px; color: var(--accent); display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-list-check"></i> ${group} Bookings
-                        </h4>
-                        <div class="table-wrapper">
-                            <table class="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th>Booking ID</th>
-                                        <th>User</th>
-                                        <th>Slot #</th>
-                                        <th>Type</th>
-                                        <th>Vehicle</th>
-                                        <th>Start Time</th>
-                                        <th>End Time</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${groups[group].map(b => `
-                                    <tr>
-                                        <td><code>${b.bookingId}</code></td>
-                                        <td>${b.userName}</td>
-                                        <td>${b.slotNumber || '—'}</td>
-                                        <td>${b.slotType === 'ev' ? '⚡ EV' : '🅿️ Regular'}</td>
-                                        <td><code>${b.vehicleNumber}</code></td>
-                                        <td>${new Date(b.startTime).toLocaleString()}</td>
-                                        <td>${b.endTime ? new Date(b.endTime).toLocaleString() : '—'}</td>
-                                        <td>₹${b.amount}</td>
-                                        <td><span class="status-badge status-${b.status}">${b.status}</span></td>
-                                    </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    `;
-                }).join('');
+                // Sort newest first
+                const sorted = data.bookings.sort((a, b) => new Date(b.createdAt || b.startTime) - new Date(a.createdAt || a.startTime));
+
+                container.innerHTML = `
+                <div style="margin-bottom:12px; color:var(--sub); font-size:13px;">
+                    <i class="fa-solid fa-database"></i> Total Records: <strong style="color:var(--text)">${sorted.length}</strong>
+                    &nbsp;|&nbsp; Active: <strong style="color:#22c55e">${sorted.filter(b=>b.status==='active').length}</strong>
+                    &nbsp;|&nbsp; Completed: <strong style="color:#3b82f6">${sorted.filter(b=>b.status==='completed').length}</strong>
+                </div>
+                <div class="table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Booking ID</th>
+                                <th>User / Driver</th>
+                                <th>Slot #</th>
+                                <th>Type</th>
+                                <th>Vehicle Number</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sorted.map((b, i) => `
+                            <tr style="background: ${b.status === 'active' ? 'rgba(34,197,94,0.04)' : 'transparent'}">
+                                <td style="color:var(--sub);font-size:11px;">${i + 1}</td>
+                                <td><code style="font-size:10px;">${b.bookingId}</code></td>
+                                <td><strong>${b.userName || 'Simulated User'}</strong></td>
+                                <td><strong>#${b.slotNumber || '?'}</strong></td>
+                                <td>${b.slotType === 'ev' ? '<span class="badge-ev">⚡ EV</span>' : '<span class="badge-regular">🅿️ Regular</span>'}</td>
+                                <td><code>${b.vehicleNumber || '—'}</code></td>
+                                <td>${b.startTime ? new Date(b.startTime).toLocaleString() : '—'}</td>
+                                <td>${b.endTime ? new Date(b.endTime).toLocaleString() : '<span style="color:#f59e0b">Still Parked</span>'}</td>
+                                <td><strong>₹${b.amount || 0}</strong></td>
+                                <td><span class="status-badge status-${b.status}">${b.status}</span></td>
+                            </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
 
                 if (container.innerHTML.trim() === '') {
                     container.innerHTML = '<p style="padding: 20px; text-align: center; color: var(--muted);">No bookings found.</p>';
@@ -937,16 +937,30 @@
                 updateSimUI();
                 showToast(data.message, 'success');
 
+                // Immediately force all displays to refresh so slots show as occupied/vacant
+                loadSlots();
+                loadParkingMap();
+                loadStats();
+                loadBookings();
+
                 if (simulationActive && !cameraInterval) {
                     cameraInterval = setInterval(() => {
                         const camView = document.getElementById('tab-content-camera');
                         if (camView && camView.style.display !== 'none') {
                             loadCameraFeed();
                         }
+                        // Also keep map and slot table in sync while simulation runs
+                        loadSlots();
+                        loadParkingMap();
+                        loadStats();
                     }, 3000);
                 } else if (!simulationActive && cameraInterval) {
                     clearInterval(cameraInterval);
                     cameraInterval = null;
+                    // Final refresh after stopping
+                    loadSlots();
+                    loadParkingMap();
+                    loadBookings();
                 }
             } catch (err) {
                 showToast('Failed to toggle simulation', 'error');
@@ -969,11 +983,14 @@
             }
         }
 
-        // Add camera tab load logic to switchTab
+        // Add tab-specific live loaders to switchTab
         const _origSwitchTab = switchTab;
         switchTab = function(tab) {
             _origSwitchTab(tab);
-            if (tab === 'camera') loadCameraFeed();
+            if (tab === 'camera') { loadCameraFeed(); loadSlots(); loadParkingMap(); }
+            if (tab === 'bookings') { loadBookings(); }
+            if (tab === 'slots') { loadSlots(); loadParkingMap(); }
+            if (tab === 'activity') { loadActivity(); }
         };
 
         // Add CSS keyframe for scan line if not present
